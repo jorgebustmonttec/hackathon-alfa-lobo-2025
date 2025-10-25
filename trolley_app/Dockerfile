@@ -16,7 +16,7 @@ COPY . .
 EXPOSE 8081
 EXPOSE 19000-19002
 
+# ...
 # The command to run when the container starts
-# --host 0.0.0.0 is critical to expose the server
-# from within the container to your host machine.
-CMD ["npm", "start", "--", "--host", "0.0.0.0"]
+# We just run "npm start" and let Metro bind to 0.0.0.0 by default.
+CMD ["npm", "start"]
