@@ -1,154 +1,147 @@
 // Vistas/LogIn_Back.js
 import React, { useState } from 'react';
+// ▼▼▼ MODIFICADO: Ya no necesitamos View/Text/StyleSheet aquí ▼▼▼
+import { StyleSheet } from 'react-native'; 
+// ▲▲▲
 import LogIn_Front from './LogIn_Front';
 import InicioQr_Back from './InicioQr_Back';
 import InfoCarrito_Back from './InfoCarrito_Back';
-
-// ADDED: import de la nueva vista de selección
 import InfoCarrito_Seleccion_Back from './InfoCarrito_Seleccion_Back';
-// ADDED: import de la nueva vista de información de vuelo
-import InfoVuelo_Back from './InfoVuelo_Back';
+// ▼▼▼ CAMBIO 1: Importar el nuevo componente real ▼▼▼
+import InfoCarrito_Producto_Back from './InfoCarrito_Producto_Back';
+// ▲▲▲ FIN CAMBIO 1 ▲▲▲
 
 export default function LogIn_Back() {
-  // Estado del LogIn
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  // Orquesta de vistas
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [scannedData, setScannedData] = useState(null);   // { type, data }
-  const [showQrResult, setShowQrResult] = useState(false);
+// ... (estados de LogIn, orquesta de vistas, etc. SIN CAMBIOS) ...
+const [username, setUsername] = useState('');
+const [password, setPassword] = useState('');
+const [isLoggedIn, setIsLoggedIn] = useState(false);
+const [scannedData, setScannedData] = useState(null);
+const [showQrResult, setShowQrResult] = useState(false);
+const [showSeleccion, setShowSeleccion] = useState(false);
+const [ubicacionId, setUbicacionId] = useState(null);
+const [showProducto, setShowProducto] = useState(false);
+const [cantidadesConfirmadas, setCantidadesConfirmadas] = useState({});
 
-  // ADDED: estados para la nueva vista InfoVuelo
-  const [showInfoVuelo, setShowInfoVuelo] = useState(false);
-  const [flightData, setFlightData] = useState(null);
+// ... (handleLogin, handleLogout SIN CAMBIOS) ...
+const handleLogin = () => {
+ setIsLoggedIn(true);
+};
+const handleLogout = () => {
+ setIsLoggedIn(false);
+ setUsername('');
+ setPassword('');
+ setScannedData(null);
+ setShowQrResult(false);
+ setShowSeleccion(false);
+ setUbicacionId(null);
+ setShowProducto(false);
+ setCantidadesConfirmadas({});
+};
 
-  // ADDED: estados para la vista de selección (equivalente a 'vistaLogueada' y 'ubicacionId' de App.js)
-  const [showSeleccion, setShowSeleccion] = useState(false);
-  const [ubicacionId, setUbicacionId] = useState(null); // ej. 'A1', 'A3', etc.
+// ... (handleBackToCamera, handleNavigateToSeleccion SIN CAMBIOS) ...
+const handleBackToCamera = () => {
+ setShowQrResult(false);
+ setScannedData(null);
+ setShowSeleccion(false);
+ setUbicacionId(null);
+ setShowProducto(false);
+};
+const handleNavigateToSeleccion = (idUbicacion) => {
+ setUbicacionId(idUbicacion);
+ setShowSeleccion(true);
+};
 
-  // Acciones de LogIn
-  const handleLogin = () => {
-    // aquí podrías validar campos o llamar a tu backend
-    setIsLoggedIn(true);
-  };
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUsername('');
-    setPassword('');
-    setScannedData(null);
-    setShowQrResult(false);
-    // ADDED: limpiar estados adicionales
-    setShowInfoVuelo(false);
-    setFlightData(null);
-    setShowSeleccion(false);
-    setUbicacionId(null);
-  };
+// --- ESTAS FUNCIONES AHORA SON LAS PROPS PARA NAVEGACIÓN ---
 
-  // Navegación entre vistas
-  const handleBackToCamera = () => {
-    setShowQrResult(false);
-    setScannedData(null);
-    setShowInfoVuelo(false);
-    setFlightData(null);
-    // ADDED: por si se vuelve desde selección → cámara
-    setShowSeleccion(false);
-    setUbicacionId(null);
-  };
+// handleBackToCarrito: Vuelve a la vista de Carrito (A1, A2...)
+const handleBackToCarrito = () => {
+ setUbicacionId(null);
+ setShowSeleccion(false);
+ setShowProducto(false); // Asegurarse de cerrar todo
+};
 
-  // Navegación desde InfoVuelo hacia InfoCarrito
-  const handleFlightSelected = (selectedFlightData) => {
-    setFlightData(selectedFlightData);
-    setShowInfoVuelo(false);
-    setShowQrResult(true);
-  };
+// handleNavigateToProducto: Va a la vista de Producto
+const handleNavigateToProducto = (idUbicacion, cantidades) => {
+ console.log("Navegando a PRODUCTO con:", idUbicacion, cantidades);
+ setCantidadesConfirmadas(cantidades);
+ setUbicacionId(idUbicacion);
+ setShowProducto(true); // <-- Muestra la vista de Producto
+ setShowSeleccion(true); // <-- Mantenemos Seleccion "debajo" por si acaso
+};
 
-  // Navegación de vuelta desde InfoVuelo a la cámara
-  const handleBackToQr = () => {
-    setShowInfoVuelo(false);
-    setFlightData(null);
-  };
+// handleBackToSeleccion: Vuelve a la vista de Selección (lista de productos)
+const handleBackToSeleccion = () => {
+ setShowProducto(false); // <-- Oculta la vista de Producto
+};
+// --- FIN DE FUNCIONES DE NAVEGACIÓN ---
 
-  // ADDED: handlers para navegar a selección y volver al carrito
-  const handleNavigateToSeleccion = (idUbicacion) => {
-    setUbicacionId(idUbicacion);
-    setShowSeleccion(true);
-  };
-  const handleBackToCarrito = () => {
-    setUbicacionId(null);
-    setShowSeleccion(false);
-  };
 
-  // --- RENDER ---
-  // Si está logueado, decidir qué vista mostrar
-  if (isLoggedIn) {
-    // ADDED: Vista 5 — Selección (tiene prioridad)
-    if (showSeleccion && ubicacionId) {
-      return (
-        <InfoCarrito_Seleccion_Back
-          ubicacionId={ubicacionId}
-          onBack={handleBackToCarrito}
-        />
-      );
-    }
+// --- RENDER ---
+if (isLoggedIn) {
 
-    // ADDED: Vista 4 — Carrito (después de seleccionar vuelo)
-    if (showQrResult && (scannedData || flightData)) {
-      return (
-        <InfoCarrito_Back
-          cartId={(scannedData?.data || flightData?.qrData?.data || '').trim()}
-          flightData={flightData}
-          onBack={handleBackToCamera}
-          onNavigateToSeleccion={handleNavigateToSeleccion}
-        />
-      );
-    }
+  // ▼▼▼ CAMBIO 2: Reemplazar el Placeholder por el componente real ▼▼▼
+  // Esta es la vista más "profunda", la checamos primero.
+ if (showProducto && ubicacionId) {
+ return (
+  <InfoCarrito_Producto_Back
+  ubicacionId={ubicacionId}
+  cantidadesConfirmadas={cantidadesConfirmadas}
+  onBack={handleBackToSeleccion}  // Botón "Volver" (a Selección)
+  onCompleteAll={handleBackToCarrito} // Cuando se acaban los productos (a Carrito)
+  />
+ );
+ }
+  // ▲▲▲ FIN CAMBIO 2 ▲▲▲
 
-    // ADDED: Vista 3 — InfoVuelo (después de escanear QR)
-    if (showInfoVuelo && scannedData) {
-      return (
-        <InfoVuelo_Back
-          qrData={scannedData}
-          onBack={handleBackToQr}
-          onContinue={handleFlightSelected}
-        />
-      );
-    }
+ // Vista de Selección (Cajones A1, A2...)
+ if (showSeleccion && ubicacionId) {
+ return (
+  <InfoCarrito_Seleccion_Back
+  ubicacionId={ubicacionId}
+  onBack={handleBackToCarrito} // El "Volver" de aquí SÍ va al Carrito
+  onConfirm={handleNavigateToProducto}
+  />
+ );
+ }
 
-    // (TU BLOQUE ORIGINAL SIGUE INTACTO; quedará “eclipsado” por el retorno anterior si hay showQrResult)
-    // Tercera vista: InfoCarrito (tras escanear)
-    if (showQrResult && scannedData) {
-      return (
-        <InfoCarrito_Back
-          cartId={(scannedData.data || '').trim()} // texto leído del QR
-          onBack={handleBackToCamera}              // volver a la cámara
-        />
-      );
-    }
-
-    // Segunda vista: Cámara (delegada al Back de InicioQr)
-    return (
-      <InicioQr_Back
-        onBack={handleLogout} // ← botón "Volver" desde la cámara (regresa al login)
-        onScanned={({ type, data }) => {
-          // En cuanto lea, pasamos a InfoVuelo primero
-          setScannedData({ type, data });
-          setShowInfoVuelo(true);
-        }}
-      />
-    );
-  }
-
-  // Vista de LogIn (Front puro)
-  return (
-    <LogIn_Front
-      username={username}
-      password={password}
-      onChangeUsername={setUsername}
-      onChangePassword={setPassword}
-      onSubmit={handleLogin}
-      // Nota: no añadí props opcionales (isLoading, errorMessage, onForgotPassword)
-      // porque pediste no modificar el Front; si quieres, las activo después.
-    />
-  );
+ // Vista de Carrito (Principal)
+ if (showQrResult && scannedData) {
+ return (
+  <InfoCarrito_Back
+  cartId={(scannedData.data || '').trim()}
+  onBack={handleBackToCamera}
+  onNavigateToSeleccion={handleNavigateToSeleccion}
+  />
+ );
+ }
+ 
+ // Vista de Cámara (Default)
+ return (
+ <InicioQr_Back
+  onBack={handleLogout}
+  onScanned={({ type, data }) => {
+  setScannedData({ type, data });
+  setShowQrResult(true);
+  }}
+ />
+ );
 }
 
+// Vista de LogIn (Front puro)
+return (
+ <LogIn_Front
+ username={username}
+ password={password}
+ onChangeUsername={setUsername}
+ onChangePassword={setPassword}
+ onSubmit={handleLogin}
+ />
+);
+}
+
+// ▼▼▼ CAMBIO 3: Eliminar los estilos del placeholder ▼▼▼
+const styles = StyleSheet.create({
+ // ¡Estilos del placeholder eliminados!
+});
+// ▲▲▲ FIN CAMBIO 3 ▲▲▲
