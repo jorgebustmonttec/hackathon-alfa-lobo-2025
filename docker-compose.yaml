@@ -27,13 +27,13 @@ services:
     env_file:
       - ./.env
     volumes:
-      - ./database:/flyway/sql # Correct path
+      - ./database:/flyway/sql
     command: "migrate"
 
   # 3. Your Backend API
   api:
     build:
-      context: ./api # Correct path
+      context: ./api
       dockerfile: Dockerfile
     container_name: gategroup_api
     restart: unless-stopped
@@ -43,23 +43,10 @@ services:
     env_file:
       - ./.env
     ports:
-      - "8080:8080" # Change if your API uses a different port
+      - "8080:8080"
     volumes:
       - ./api:/app
-
-  # 4. Your React Native App (Metro Bundler)
-  app:
-    build:
-      context: ./trolley_app # Correct path
-      dockerfile: Dockerfile
-    container_name: gategroup_app
-    restart: unless-stopped
-    ports:
-      - "8081:8081" # Metro
-      - "19000-19002:19000-19002" # Expo
-    volumes:
-      - ./trolley_app:/app
-      - /app/node_modules # Anonymous volume, same as your KNX setup
+      - /app/node_modules # Fix for node_modules mount issue
 
 # Named volume for persistent DB data
 volumes:
