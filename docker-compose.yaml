@@ -1,0 +1,53 @@
+# docker-compose.yaml
+services:
+  # 1. The Postgres Database
+  database:
+    image: postgres:16-alpine
+    container_name: gategroup_db
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - gategroup-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. The Database Migrations
+  migrations:
+    image: flyway/flyway:10
+    container_name: gategroup_migrations
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    volumes:
+      - ./database:/flyway/sql
+    command: "migrate"
+
+  # 3. Your Backend API
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: gategroup_api
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api:/app
+      - /app/node_modules # Fix for node_modules mount issue
+
+# Named volume for persistent DB data
+volumes:
+  gategroup-db-data:
