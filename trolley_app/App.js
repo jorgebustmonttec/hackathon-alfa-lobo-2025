@@ -28,29 +28,40 @@ export default function App() {
   const handleBarcodeScanned = ({ type, data }) => {
     console.log('QR Escaneado:', { type, data }); // Debug
     const qrData = { type, data };
+    
+    // Primero guardar los datos del QR
     setScannedData(qrData);
     
-    // Mostrar Alert y navegar directamente después de un pequeño delay
+    // Mostrar Alert con la información y navegación controlada
     Alert.alert(
-      'QR Escaneado',
-      `Tipo: ${type}\nDatos: ${data}`,
-      [{ 
-        text: 'OK', 
-        onPress: () => {
-          console.log('Botón OK presionado, navegando a tercera vista'); // Debug
-          setShowQrResult(true);
+      'QR Escaneado Exitosamente',
+      `Tipo: ${type}\nDatos: ${data}\n\n¿Deseas ver los detalles?`,
+      [
+        { 
+          text: 'Cancelar', 
+          style: 'cancel',
+          onPress: () => {
+            console.log('Usuario canceló, reiniciando escaneo');
+            setScannedData(null);
+          }
+        },
+        { 
+          text: 'Ver Detalles', 
+          onPress: () => {
+            console.log('Navegando a vista de detalles con datos:', qrData);
+            // Usar setTimeout para asegurar que el estado se actualice después del Alert
+            setTimeout(() => {
+              setShowQrResult(true);
+            }, 100);
+          }
         }
-      }],
-      { 
-        onDismiss: () => {
-          console.log('Alert dismissed'); // Debug
-          setShowQrResult(true);
-        }
-      }
+      ],
+      { cancelable: false }
     );
   };
 
   const handleBackToCamera = () => {
+    console.log('Regresando a la cámara'); // Debug
     setShowQrResult(false);
     setScannedData(null);
   };
@@ -60,8 +71,8 @@ export default function App() {
     console.log('Estados actuales:', { showQrResult, scannedData }); // Debug
     
     // Tercera vista: Mostrar resultado del QR
-    if (showQrResult && scannedData) {
-      console.log('Mostrando tercera vista'); // Debug
+    if (showQrResult && scannedData && scannedData.data) {
+      console.log('Mostrando tercera vista con datos:', scannedData); // Debug
       return (
         <View style={styles.container}>
           <View style={styles.qrResultContainer}>
@@ -136,9 +147,12 @@ export default function App() {
         
         {/* Overlay con información */}
         <View style={styles.overlay}>
-          <View style={styles.scanArea}>
+          <View style={[styles.scanArea, scannedData && styles.scanAreaSuccess]}>
             <Text style={styles.scanInstruction}>
-              Apunta la cámara hacia un código QR
+              {scannedData 
+                ? "✅ Código escaneado exitosamente" 
+                : "Apunta la cámara hacia un código QR"
+              }
             </Text>
           </View>
         </View>
@@ -351,6 +365,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  scanAreaSuccess: {
+    borderColor: '#28a745',
+    backgroundColor: 'rgba(40, 167, 69, 0.2)',
   },
   scanInstruction: {
     color: '#ffffff',
