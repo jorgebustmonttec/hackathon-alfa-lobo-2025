@@ -1,8 +1,7 @@
+// index.js
 import { registerRootComponent } from 'expo';
+import LogIn_Back from './Vistas/LogIn_Back';
 
-import App from './Vistas/App';
-
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
-registerRootComponent(App);
+// Registra la vista principal (LogIn_Back) como punto de entrada de la app.
+// Expo se encarga de inicializar el entorno y ejecutar la app correctamente.
+registerRootComponent(LogIn_Back);
