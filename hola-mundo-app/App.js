@@ -1,15 +1,54 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
 
 export default function App() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    // Este botón no tiene funcionalidad, solo es visual
+    console.log('Login pressed');
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>¡Hola Mundo! 🌎</Text>
-        <Text style={styles.subtitle}>Mi primera app con React Native</Text>
-        <Text style={styles.description}>
-          Esta aplicación fue creada con Expo y React Native
-        </Text>
+      <View style={styles.loginCard}>
+        {/* Título de la aplicación */}
+        <Text style={styles.title}>Iniciar Sesión</Text>
+        <Text style={styles.subtitle}>Bienvenido de nuevo</Text>
+        
+        {/* Campo de Usuario */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Usuario</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu usuario"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
+        </View>
+
+        {/* Campo de Contraseña */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Contraseña</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+          />
+        </View>
+
+        {/* Botón de Login */}
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+        </TouchableOpacity>
+
+        {/* Texto adicional */}
+        <Text style={styles.footerText}>¿Olvidaste tu contraseña?</Text>
       </View>
       <StatusBar style="auto" />
     </View>
@@ -19,16 +58,17 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
   },
-  card: {
+  loginCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 20,
+    borderRadius: 15,
     padding: 30,
-    alignItems: 'center',
+    width: '100%',
+    maxWidth: 350,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -39,23 +79,52 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 10,
+    color: '#333333',
     textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 18,
-    color: '#3498db',
-    marginBottom: 15,
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#dddddd',
+    borderRadius: 8,
+    padding: 15,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  loginButton: {
+    backgroundColor: '#007bff',
+    borderRadius: 8,
+    padding: 15,
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  loginButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
-  description: {
-    fontSize: 16,
-    color: '#7f8c8d',
+  footerText: {
+    fontSize: 14,
+    color: '#007bff',
     textAlign: 'center',
-    lineHeight: 24,
+    textDecorationLine: 'underline',
   },
 });
