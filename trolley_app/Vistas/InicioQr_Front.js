@@ -9,8 +9,8 @@ export default function InicioQr_Front({
   onRequestPermission,         // () => void
   scanned,                     // boolean
   onBarcodeScanned,            // ({type, data}) => void
-  onBack,                      // () => void
   onResetScanner,              // () => void
+  onBack,                      // () => void
 }) {
   // 1) Estado inicial: cargando permiso
   if (hasPermission === null) {
@@ -51,8 +51,13 @@ export default function InicioQr_Front({
 
       {/* Overlay */}
       <View style={styles.overlay} pointerEvents="none">
-        <View style={styles.scanArea}>
-          <Text style={styles.scanText}>Apunta al código QR</Text>
+        <View style={[
+          styles.scanArea,
+          scanned && { borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.2)' }
+        ]}>
+          <Text style={styles.scanText}>
+            {scanned ? '✅ QR Detectado' : 'Apunta al código QR'}
+          </Text>
         </View>
       </View>
 
@@ -65,6 +70,9 @@ export default function InicioQr_Front({
         )}
         {scanned && (
           <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <View style={[styles.badge, { backgroundColor: 'rgba(40,167,69,0.8)' }]}>
+              <Text style={styles.badgeText}>✅ Navegando...</Text>
+            </View>
           </View>
         )}
       </View>
