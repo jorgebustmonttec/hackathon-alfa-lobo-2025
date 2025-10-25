@@ -10,6 +10,7 @@ export default function InicioQr_Front({
   scanned,                     // boolean
   onBarcodeScanned,            // ({type, data}) => void
   onBack,                      // () => void
+  onResetScanner,              // () => void
 }) {
   // 1) Estado inicial: cargando permiso
   if (hasPermission === null) {
@@ -64,9 +65,6 @@ export default function InicioQr_Front({
         )}
         {scanned && (
           <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <View style={[styles.badge, { backgroundColor: 'rgba(0,0,0,.6)' }]}>
-              <Text style={styles.badgeText}>Leído • toca “Volver” o reintenta</Text>
-            </View>
           </View>
         )}
       </View>
