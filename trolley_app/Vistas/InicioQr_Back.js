@@ -15,36 +15,18 @@ export default function InicioQr_Back({ onBack, onScanned }) {
     requestPermission?.();
   };
 
+  const handleResetScanner = () => {
+    setScanned(false);
+  };
+
   const handleBarcodeScanned = ({ type, data }) => {
     if (scanned) return;
-    setScanned(true);
-
+    
     const value = (data || '').trim();
-
-    Alert.alert(
-      'QR Escaneado',
-      `Tipo: ${type}\nDatos: ${value}`,
-      [
-        { 
-          text: 'Cancelar', 
-          style: 'cancel', 
-          onPress: () => {
-            setTimeout(() => setScanned(false), 100);
-          }
-        },
-        { 
-          text: 'Continuar', 
-          onPress: () => {
-            setTimeout(() => {
-              onScanned?.({ type, data: value });
-            }, 100);
-          }
-        }
-      ],
-      { 
-        cancelable: false
-      }
-    );
+    
+    // Navegar inmediatamente sin Alert
+    setScanned(true);
+    onScanned?.({ type, data: value });
   };
 
   return (
@@ -53,6 +35,7 @@ export default function InicioQr_Back({ onBack, onScanned }) {
       onRequestPermission={handleRequestPermission}
       scanned={scanned}
       onBarcodeScanned={handleBarcodeScanned}
+      onResetScanner={handleResetScanner}
       onBack={onBack}
     />
   );
