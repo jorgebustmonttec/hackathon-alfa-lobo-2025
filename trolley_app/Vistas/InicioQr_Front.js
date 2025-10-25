@@ -32,7 +32,7 @@ export default function InicioQr_Front({
         </TouchableOpacity>
         {!!onBack && (
           <TouchableOpacity style={styles.btnSecondary} onPress={onBack}>
-            <Text style={styles.btnText}>Volver</Text>
+            <Text style={styles.btnText}>Log In</Text>
           </TouchableOpacity>
         )}
       </View>

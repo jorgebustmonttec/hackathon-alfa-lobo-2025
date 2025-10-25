@@ -1,12 +1,12 @@
 // screens/InfoVuelo_Front.js
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
-  SafeAreaView 
+  SafeAreaView
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
@@ -19,100 +19,65 @@ export default function InfoVuelo_Front({
   onBack,                 // () => void
   hasSelection,           // boolean
 }) {
-  
-  const renderFlightCard = (title, flightInfo, value, icon) => (
-    <View style={styles.flightCard}>
-      <View style={styles.flightHeader}>
-        <Text style={styles.flightIcon}>{icon}</Text>
-        <Text style={styles.flightTitle}>{title}</Text>
-      </View>
-      <Text style={styles.flightInfo}>{flightInfo}</Text>
-      
-      <TouchableOpacity
+
+  const OptionRow = ({ label, value }) => (
+    <TouchableOpacity
+      style={[
+        styles.optionRow,
+        selectedOption === value && styles.optionRowActive
+      ]}
+      onPress={() => onOptionSelect(value)}
+      activeOpacity={0.7}
+    >
+      <View
         style={[
-          styles.selectButton,
-          selectedOption === value && styles.selectButtonActive
-        ]}
-        onPress={() => {
-          setTimeout(() => onOptionSelect(value), 0);
-        }}
-        activeOpacity={0.7}
-      >
-        <View style={[
           styles.radioCircle,
           selectedOption === value && styles.radioCircleSelected
-        ]}>
-          {selectedOption === value && <View style={styles.radioInner} />}
-        </View>
-        <Text style={[
-          styles.selectButtonText,
-          selectedOption === value && styles.selectButtonTextActive
-        ]}>
-          Vengo de esta ciudad
-        </Text>
-      </TouchableOpacity>
-    </View>
+        ]}
+      >
+        {selectedOption === value && <View style={styles.radioInner} />}
+      </View>
+      <Text
+        style={[
+          styles.optionText,
+          selectedOption === value && styles.optionTextActive
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => {
-              setTimeout(() => onBack(), 0);
-            }}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
             activeOpacity={0.7}
           >
-            <Text style={styles.backButtonText}>← Volver</Text>
+            <Text style={styles.backButtonText}>← Regresar</Text>
           </TouchableOpacity>
+
           <Text style={styles.title}>Confirmación de Ciudad</Text>
-          <Text style={styles.subtitle}>Selecciona de qué ciudad vienes</Text>
         </View>
 
-        {/* City Cards */}
-        <View style={styles.flightsContainer}>
-          {renderFlightCard(
-            'Ciudad de Origen', 
-            ciudadOrigen, 
-            'origen',
-            '🏙️'
-          )}
-          
-          {renderFlightCard(
-            'Ciudad Destino', 
-            ciudadDestino, 
-            'destino',
-            '🌆'
-          )}
+        {/* ÚNICO CUADRO */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Selecciona la ciudad donde te encuentras</Text>
+
+          <View style={styles.optionsGroup}>
+            <OptionRow label={ciudadOrigen} value="origen" />
+            <OptionRow label={ciudadDestino} value="destino" />
+          </View>
         </View>
-
-        {/* Selection Status */}
-        {hasSelection && (
-          <View style={styles.selectionStatus}>
-            <Text style={styles.selectionIcon}>✅</Text>
-            <Text style={styles.selectionText}>
-              Has seleccionado: {selectedOption === 'origen' ? 'Ciudad de Origen' : 'Ciudad Destino'}
-            </Text>
-          </View>
-        )}
-
-        {/* Warning if no selection */}
-        {!hasSelection && (
-          <View style={styles.warningContainer}>
-            <Text style={styles.warningIcon}>⚠️</Text>
-            <Text style={styles.warningText}>
-              Debes seleccionar una ciudad para continuar
-            </Text>
-          </View>
-        )}
       </ScrollView>
 
-      {/* Bottom Button */}
+      {/* Botón inferior */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity
           style={[
@@ -120,18 +85,18 @@ export default function InfoVuelo_Front({
             hasSelection ? styles.continueButtonActive : styles.continueButtonDisabled
           ]}
           onPress={() => {
-            if (hasSelection) {
-              setTimeout(() => onContinue(), 0);
-            }
+            if (hasSelection) onContinue();
           }}
           disabled={!hasSelection}
           activeOpacity={hasSelection ? 0.7 : 1}
         >
-          <Text style={[
-            styles.continueButtonText,
-            hasSelection ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
-          ]}>
-            {hasSelection ? 'Continuar al Carrito' : 'Selecciona una Ciudad'}
+          <Text
+            style={[
+              styles.continueButtonText,
+              hasSelection ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
+            ]}
+          >
+            {hasSelection ? 'Continuar con el Carrito' : 'Selecciona una Ciudad'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -140,18 +105,10 @@ export default function InfoVuelo_Front({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  header: {
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
+  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  scrollView: { flex: 1, paddingHorizontal: 20 },
+
+  header: { paddingTop: 20, paddingBottom: 30 },
   backButton: {
     alignSelf: 'flex-start',
     paddingVertical: 8,
@@ -160,170 +117,74 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 20,
   },
-  backButtonText: {
-    color: '#495057',
-    fontWeight: '600',
-  },
+  backButtonText: { color: '#495057', fontWeight: '600' },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#212529',
-    marginBottom: 8,
-    textAlign: 'center',
+    fontSize: 28, fontWeight: '700', color: '#212529',
+    marginBottom: 8, textAlign: 'center'
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#6c757d',
-    textAlign: 'center',
-  },
-  flightsContainer: {
-    gap: 20,
-    paddingBottom: 20,
-  },
-  flightCard: {
+  subtitle: { fontSize: 16, color: '#6c757d', textAlign: 'center' },
+
+  // Card con sombra
+  card: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
+    marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  flightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  flightIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  flightTitle: {
-    fontSize: 18,
+  cardTitle: {
+    fontSize: 16,
     fontWeight: '700',
     color: '#212529',
+    marginBottom: 12,
   },
-  flightInfo: {
-    fontSize: 16,
-    color: '#495057',
-    marginBottom: 20,
-    lineHeight: 24,
-  },
-  selectButton: {
+
+  optionsGroup: { gap: 12 },
+
+  // Fila de opción con botón circular
+  optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#dee2e6',
     backgroundColor: '#f8f9fa',
   },
-  selectButtonActive: {
-    borderColor: '#0d6efd',
+  optionRowActive: {
+    borderColor: '#3F8DD1',
     backgroundColor: '#e7f3ff',
   },
   radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#dee2e6',
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 20, height: 20, borderRadius: 10,
+    borderWidth: 2, borderColor: '#dee2e6',
+    marginRight: 12, alignItems: 'center', justifyContent: 'center',
   },
-  radioCircleSelected: {
-    borderColor: '#0d6efd',
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#0d6efd',
-  },
-  selectButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6c757d',
-  },
-  selectButtonTextActive: {
-    color: '#0d6efd',
-  },
-  selectionStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#d1edff',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  selectionIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  selectionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0c5aa6',
-  },
-  warningContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff3cd',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  warningIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  warningText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#856404',
-  },
+  radioCircleSelected: { borderColor: '#3F8DD1' },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0d6efd' },
+
+  optionText: { fontSize: 16, fontWeight: '600', color: '#495057' },
+  optionTextActive: { color: '#020873' },
+
   bottomContainer: {
     paddingHorizontal: 20,
     paddingVertical: 20,
     backgroundColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 8,
   },
-  continueButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  continueButtonActive: {
-    backgroundColor: '#0d6efd',
-  },
-  continueButtonDisabled: {
-    backgroundColor: '#e9ecef',
-  },
-  continueButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  continueButtonTextActive: {
-    color: '#ffffff',
-  },
-  continueButtonTextDisabled: {
-    color: '#adb5bd',
-  },
+  continueButton: { paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
+  continueButtonActive: { backgroundColor: '#020873' },
+  continueButtonDisabled: { backgroundColor: '#e9ecef' },
+  continueButtonText: { fontSize: 18, fontWeight: '700' },
+  continueButtonTextActive: { color: '#ffffff' },
+  continueButtonTextDisabled: { color: '#adb5bd' },
 });
