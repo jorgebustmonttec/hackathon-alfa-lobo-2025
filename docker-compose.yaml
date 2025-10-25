@@ -1,71 +1,66 @@
 # docker-compose.yaml
 services:
-
   # 1. The Postgres Database
-  # This is the direct answer to "how to set up postgres"
   database:
     image: postgres:16-alpine
     container_name: gategroup_db
     restart: unless-stopped
     env_file:
-      - ./.env  # Pulls in POSTGRES_USER, POSTGRES_PASSWORD, etc.
+      - ./.env
     ports:
-      - "5432:5432" # Exposes the DB to your host machine (for DBeaver/pgAdmin)
+      - "5432:5432"
     volumes:
       - gategroup-db-data:/var/lib/postgresql/data
     healthcheck:
-      # This checks if Postgres is actually ready to accept connections
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGG_USER -d $POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # 2. The Database Migrations (stolen from your Svelte example)
-  # This runs ONCE and then exits. It waits for the DB to be healthy.
+  # 2. The Database Migrations
   migrations:
     image: flyway/flyway:10
     container_name: gategroup_migrations
     depends_on:
       database:
-        condition: service_healthy # Waits for the healthcheck above
+        condition: service_healthy
     env_file:
-      - ./.env # Flyway needs FLYWAY_URL, FLYWAY_USER, etc.
+      - ./.env
     volumes:
-      - ./database:/flyway/sql # Maps your local SQL files into the container
-    command: "migrate" # Runs the migration and stops
+      - ./database:/flyway/sql # Correct path
+    command: "migrate"
 
-  # 3. Your Backend API (placeholder)
+  # 3. Your Backend API
   api:
     build:
-      context: ./api
+      context: ./api # Correct path
       dockerfile: Dockerfile
     container_name: gategroup_api
     restart: unless-stopped
     depends_on:
       database:
-        condition: service_healthy # Make sure API only starts after DB is ready
+        condition: service_healthy
     env_file:
       - ./.env
     ports:
-      - "8080:8080" # Assuming your API runs on 8080, change as needed
+      - "8080:8080" # Change if your API uses a different port
     volumes:
-      - ./api:/app # Mount your local code for hot-reloading
+      - ./api:/app
 
   # 4. Your React Native App (Metro Bundler)
-  # This is the main difference from your web projects
   app:
     build:
-      context: ./app
+      context: ./trolley_app # Correct path
       dockerfile: Dockerfile
-    container_name: gategroup_app_bundler
+    container_name: gategroup_app
     restart: unless-stopped
     ports:
-      - "8081:8081" # Metro's default port
-      - "19000-19002:19000-19002" # Expo ports
+      - "8081:8081" # Metro
+      - "19000-19002:19000-19002" # Expo
     volumes:
-      - ./app:/app
-      - /app/node_modules # Prevents your local node_modules from overwriting
+      - ./trolley_app:/app
+      - /app/node_modules # Anonymous volume, same as your KNX setup
 
-# This defines the named volume we used for the database
+# Named volume for persistent DB data
 volumes:
   gategroup-db-data:
