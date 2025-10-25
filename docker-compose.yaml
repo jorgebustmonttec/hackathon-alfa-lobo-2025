@@ -1,0 +1,71 @@
+# docker-compose.yaml
+services:
+
+  # 1. The Postgres Database
+  # This is the direct answer to "how to set up postgres"
+  database:
+    image: postgres:16-alpine
+    container_name: gategroup_db
+    restart: unless-stopped
+    env_file:
+      - ./.env  # Pulls in POSTGRES_USER, POSTGRES_PASSWORD, etc.
+    ports:
+      - "5432:5432" # Exposes the DB to your host machine (for DBeaver/pgAdmin)
+    volumes:
+      - gategroup-db-data:/var/lib/postgresql/data
+    healthcheck:
+      # This checks if Postgres is actually ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. The Database Migrations (stolen from your Svelte example)
+  # This runs ONCE and then exits. It waits for the DB to be healthy.
+  migrations:
+    image: flyway/flyway:10
+    container_name: gategroup_migrations
+    depends_on:
+      database:
+        condition: service_healthy # Waits for the healthcheck above
+    env_file:
+      - ./.env # Flyway needs FLYWAY_URL, FLYWAY_USER, etc.
+    volumes:
+      - ./database:/flyway/sql # Maps your local SQL files into the container
+    command: "migrate" # Runs the migration and stops
+
+  # 3. Your Backend API (placeholder)
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: gategroup_api
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy # Make sure API only starts after DB is ready
+    env_file:
+      - ./.env
+    ports:
+      - "8080:8080" # Assuming your API runs on 8080, change as needed
+    volumes:
+      - ./api:/app # Mount your local code for hot-reloading
+
+  # 4. Your React Native App (Metro Bundler)
+  # This is the main difference from your web projects
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: gategroup_app_bundler
+    restart: unless-stopped
+    ports:
+      - "8081:8081" # Metro's default port
+      - "19000-19002:19000-19002" # Expo ports
+    volumes:
+      - ./app:/app
+      - /app/node_modules # Prevents your local node_modules from overwriting
+
+# This defines the named volume we used for the database
+volumes:
+  gategroup-db-data:
