@@ -1,35 +1,52 @@
 const db = require('../db');
 
-async function findAll() {
-  const { rows } = await db.query('SELECT * FROM trolley;');
-  return rows;
-}
-
-async function findByQrId(qrId) {
-  const { rows } = await db.query(
-    `
-      SELECT
+/**
+ * Finds a trolley and its associated flight route information by its QR ID.
+ * @param {string} qrId - The unique QR ID of the trolley.
+ * @returns {Promise<object|null>} The trolley and flight data, or null if not found.
+ */
+async function findByQrIdWithFlight(qrId) {
+  const query = `
+    SELECT
         t.trolley_id,
         t.trolley_qr_id,
-        t.flight_route_id,
-        t.origin_trolley_config_id,
-        t.destination_trolley_config_id,
+        fr.flight_route_id,
         fr.route_number,
         fr.origin,
-        fr.destination
-      FROM
+        fr.destination,
+        t.origin_trolley_config_id,
+        t.destination_trolley_config_id
+    FROM
         trolley t
-      JOIN
+    JOIN
         flight_route fr ON t.flight_route_id = fr.flight_route_id
-      WHERE
+    WHERE
         t.trolley_qr_id = $1;
-    `,
-    [qrId]
-  );
+  `;
+  const { rows } = await db.query(query, [qrId]);
   return rows[0] || null;
 }
 
+/**
+ * Finds all trolleys with their basic information.
+ * @returns {Promise<Array<object>>} A list of all trolleys.
+ */
+async function findAll() {
+  const query = `
+    SELECT
+        trolley_id,
+        trolley_qr_id,
+        flight_route_id
+    FROM
+        trolley
+    ORDER BY
+        trolley_qr_id;
+  `;
+  const { rows } = await db.query(query);
+  return rows;
+}
+
 module.exports = {
+  findByQrIdWithFlight,
   findAll,
-  findByQrId,
 };
