@@ -55,7 +55,7 @@ export default function InfoCarrito_Front({
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator />
-          <Text style={{ marginTop: 8 }}>Cargando carrito...</Text>
+          <Text style={{ marginTop: 8 }}>Loading cart...</Text>
         </View>
       </SafeAreaView>
     );
@@ -66,16 +66,16 @@ export default function InfoCarrito_Front({
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <Text style={{ color: 'tomato', marginBottom: 12 }}>
-            {error || 'Carrito no disponible'}
+            {error || 'Cart not available'}
           </Text>
           <TouchableOpacity style={styles.btnPrimary} onPress={onRetry}>
-            <Text style={styles.btnPrimaryText}>Reintentar</Text>
+            <Text style={styles.btnPrimaryText}>Retry</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.btnSecondary, { marginTop: 12 }]}
             onPress={onBack}
           >
-            <Text style={styles.btnSecondaryText}>← Escanear otro</Text>
+            <Text style={styles.btnSecondaryText}>← Scan another</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -91,27 +91,27 @@ export default function InfoCarrito_Front({
       >
         {/* Card encabezado */}
         <View style={styles.headerCard}>
-          <Text style={styles.title}>Carrito: {cart.id}</Text>
+          <Text style={styles.title}>Cart: {cart.id}</Text>
 
           {/* === CAMPOS NUEVOS DEL BACK (solo visual) === */}
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Trabajador: </Text>
+            <Text style={styles.metaLabel}>Worker: </Text>
             <Text style={styles.meta}>{cart.trabajadorNombre}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>ID Trabajador: </Text>
+            <Text style={styles.metaLabel}>Worker ID: </Text>
             <Text style={styles.meta}>{cart.trabajadorId}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Num. de vuelo: </Text>
+            <Text style={styles.metaLabel}>Flight number: </Text>
             <Text style={styles.meta}>{cart.numVuelo}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Origen: </Text>
+            <Text style={styles.metaLabel}>Origin: </Text>
             <Text style={styles.meta}>{cart.origen}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Destino: </Text>
+            <Text style={styles.metaLabel}>Destination: </Text>
             <Text style={styles.meta}>{cart.destino}</Text>
           </View>
         </View>
@@ -180,7 +180,7 @@ export default function InfoCarrito_Front({
             onPress={onBack}
             activeOpacity={0.8}
           >
-            <Text style={styles.cancelButtonText}>Cancelar</Text>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -191,7 +191,7 @@ export default function InfoCarrito_Front({
             onPress={() => onConfirmCarrito?.()}
             activeOpacity={0.8}
           >
-            <Text style={styles.confirmButtonText}>Confirmar carrito</Text>
+            <Text style={styles.confirmButtonText}>Confirm cart</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

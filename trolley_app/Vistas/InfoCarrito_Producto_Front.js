@@ -29,7 +29,7 @@ const CameraDisplay = ({ onScanClick, cantidadActual, cantidadRequerida }) => (
     {/* Botón escanear */}
     <View style={styles.cameraControls}>
       <TouchableOpacity style={styles.btnPrimary} onPress={onScanClick} activeOpacity={0.85}>
-        <Text style={styles.btnText}>Escanear (+1)</Text>
+        <Text style={styles.btnText}>Scan (+1)</Text>
       </TouchableOpacity>
     </View>
   </View>
@@ -41,21 +41,21 @@ const ProductInfo = ({ producto, cantidadActual, isCompleto, onComienzaScan, onO
     <Text style={styles.productName}>{producto.nombre}</Text>
     <Text style={styles.productSku}>SKU: {producto.sku}</Text>
 
-    <Text style={styles.qtyLabel}>Cantidad registrada:</Text>
+    <Text style={styles.qtyLabel}>Registered quantity:</Text>
     <Text style={[styles.qtyCounter, isCompleto && styles.qtyCompleto]}>
       {cantidadActual} / {producto.cantidadRequerida}
     </Text>
 
     {isCompleto ? (
       <View style={styles.completionContainer}>
-        <Text style={styles.completionText}>Cantidad completada</Text>
+        <Text style={styles.completionText}>Quantity completed</Text>
         <TouchableOpacity style={[styles.btnPrimary, styles.btnOK]} onPress={onOK} activeOpacity={0.85}>
           <Text style={styles.btnText}>Next Product</Text>
         </TouchableOpacity>
       </View>
     ) : (
       <TouchableOpacity style={styles.btnPrimary} onPress={onComienzaScan} activeOpacity={0.85}>
-        <Text style={styles.btnText}>Comenzar escaneo</Text>
+        <Text style={styles.btnText}>Start scanning</Text>
       </TouchableOpacity>
     )}
   </View>
@@ -85,7 +85,7 @@ export default function InfoCarrito_Producto_Front({
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#0d6efd" />
-          <Text style={styles.centerText}>Cargando productos...</Text>
+          <Text style={styles.centerText}>Loading products...</Text>
         </View>
       </SafeAreaView>
     );
@@ -97,7 +97,7 @@ export default function InfoCarrito_Producto_Front({
         <View style={styles.center}>
           <Text style={[styles.centerText, { color: 'tomato', marginBottom: 20 }]}>{error}</Text>
           <TouchableOpacity style={styles.btnSecondary} onPress={onBack} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Volver</Text>
+            <Text style={styles.btnText}>Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -108,12 +108,12 @@ export default function InfoCarrito_Producto_Front({
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <Text style={styles.centerText}>Se necesita permiso de cámara para escanear.</Text>
+          <Text style={styles.centerText}>Camera permission needed for scanning.</Text>
           <TouchableOpacity style={styles.btnPrimary} onPress={onRequestPermission} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Conceder permiso</Text>
+            <Text style={styles.btnText}>Grant permission</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btnSecondary, { marginTop: 15 }]} onPress={onBack} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Volver</Text>
+            <Text style={styles.btnText}>Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -124,9 +124,9 @@ export default function InfoCarrito_Producto_Front({
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <Text style={styles.centerText}>No hay productos para verificar en este cajón.</Text>
+          <Text style={styles.centerText}>No products to verify in this drawer.</Text>
           <TouchableOpacity style={[styles.btnSecondary, { marginTop: 15 }]} onPress={onBack} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Volver</Text>
+            <Text style={styles.btnText}>Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -151,7 +151,7 @@ export default function InfoCarrito_Producto_Front({
       <View style={styles.pageContent}>
         {/* Botón volver tipo píldora */}
         <TouchableOpacity style={styles.backPillButton} onPress={onBack} activeOpacity={0.85}>
-          <Text style={styles.backPillButtonText}>← Regresar al Cajón</Text>
+          <Text style={styles.backPillButtonText}>← Back to Drawer</Text>
         </TouchableOpacity>
 
         {/* Contenido: cámara o tarjeta */}

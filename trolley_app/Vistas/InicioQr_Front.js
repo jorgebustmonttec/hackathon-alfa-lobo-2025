@@ -16,7 +16,7 @@ export default function InicioQr_Front({
   if (hasPermission === null) {
     return (
       <View style={styles.center}>
-        <Text>Cargando permisos...</Text>
+        <Text>Loading permissions...</Text>
       </View>
     );
   }
@@ -25,10 +25,10 @@ export default function InicioQr_Front({
   if (!hasPermission) {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>Permisos de Cámara</Text>
-        <Text style={styles.text}>Necesitamos acceso a tu cámara para escanear códigos QR.</Text>
+        <Text style={styles.title}>Camera Permissions</Text>
+        <Text style={styles.text}>We need access to your camera to scan QR codes.</Text>
         <TouchableOpacity style={styles.btnPrimary} onPress={onRequestPermission}>
-          <Text style={styles.btnText}>Conceder permiso</Text>
+          <Text style={styles.btnText}>Grant Permission</Text>
         </TouchableOpacity>
         {!!onBack && (
           <TouchableOpacity style={styles.btnSecondary} onPress={onBack}>
@@ -56,7 +56,7 @@ export default function InicioQr_Front({
           scanned && { borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.2)' }
         ]}>
           <Text style={styles.scanText}>
-            {scanned ? '✅ QR Detectado' : 'Apunta al código QR'}
+            {scanned ? '✅ QR Detected' : 'Point to QR code'}
           </Text>
         </View>
       </View>
@@ -65,13 +65,13 @@ export default function InicioQr_Front({
       <View style={styles.controls}>
         {!!onBack && (
           <TouchableOpacity style={styles.btnSecondary} onPress={onBack}>
-            <Text style={styles.btnText}>← Volver</Text>
+            <Text style={styles.btnText}>← Back</Text>
           </TouchableOpacity>
         )}
         {scanned && (
           <View style={{ flex: 1, alignItems: 'flex-end' }}>
             <View style={[styles.badge, { backgroundColor: 'rgba(40,167,69,0.8)' }]}>
-              <Text style={styles.badgeText}>✅ Navegando...</Text>
+              <Text style={styles.badgeText}>✅ Navigating...</Text>
             </View>
           </View>
         )}

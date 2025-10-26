@@ -17,7 +17,7 @@ import {
 const ListHeader = () => (
   <View style={[styles.itemRow, styles.listHeader]}>
     <Text style={[styles.itemCell, styles.listHeaderCell, { flex: 5 }]}>
-      Producto
+      Product
     </Text>
     <Text
       style={[
@@ -26,7 +26,7 @@ const ListHeader = () => (
         { flex: 4, textAlign: 'center' },
       ]}
     >
-      Cantidad
+      Quantity
     </Text>
   </View>
 );
@@ -83,7 +83,7 @@ export default function InfoCarrito_Seleccion_Front({
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator />
-          <Text style={{ marginTop: 8 }}>Cargando items...</Text>
+          <Text style={{ marginTop: 8 }}>Loading items...</Text>
         </View>
       </SafeAreaView>
     );
@@ -94,13 +94,13 @@ export default function InfoCarrito_Seleccion_Front({
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <Text style={{ color: 'tomato', marginBottom: 12 }}>
-            {error || 'Items no disponibles'}
+            {error || 'Items not available'}
           </Text>
           <TouchableOpacity
             style={[styles.btnSecondary, { marginTop: 4 }]}
             onPress={onBack}
           >
-            <Text style={styles.btnSecondaryText}>← Volver</Text>
+            <Text style={styles.btnSecondaryText}>← Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -113,14 +113,14 @@ export default function InfoCarrito_Seleccion_Front({
       <View style={styles.pageContent}>
         {/* Botón tipo píldora */}
         <TouchableOpacity style={styles.backPillButton} onPress={onBack} activeOpacity={0.8}>
-          <Text style={styles.backPillButtonText}>← Volver</Text>
+          <Text style={styles.backPillButtonText}>← Back</Text>
         </TouchableOpacity>
 
         {/* Header card (bajado un poco respecto al botón volver) */}
         <View style={styles.headerCard}>
-          <Text style={styles.title}>Cajón: {data.id}</Text>
+          <Text style={styles.title}>Drawer: {data.id}</Text>
           <Text style={styles.meta}>
-            Inspeccionando {data.items.length} tipo(s) de producto.
+            Inspecting {data.items.length} type(s) of product.
           </Text>
         </View>
 
@@ -138,7 +138,7 @@ export default function InfoCarrito_Seleccion_Front({
           )}
           ListEmptyComponent={
             <View style={styles.emptyList}>
-              <Text style={styles.emptyListText}>Este cajón está vacío.</Text>
+              <Text style={styles.emptyListText}>This drawer is empty.</Text>
             </View>
           }
           contentContainerStyle={{ paddingBottom: 16 }}
@@ -154,7 +154,7 @@ export default function InfoCarrito_Seleccion_Front({
           disabled={isConfirmDisabled}
           activeOpacity={0.8}
         >
-          <Text style={styles.btnPrimaryText}>CONFIRMAR</Text>
+          <Text style={styles.btnPrimaryText}>CONFIRM</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
