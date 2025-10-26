@@ -1,6 +1,8 @@
 const express = require('express');
 const productRepository = require('../repositories/productRepository');
 const trolleyRepository = require('../repositories/trolleyRepository');
+const configurationRepository = require('../repositories/configurationRepository');
+const flightRepository = require('../repositories/flightRepository');
 
 const router = express.Router();
 
@@ -168,6 +170,94 @@ router.get('/trolley/:qrId/flight', async (req, res) => {
   } catch (error) {
     console.error(`Error fetching flight info for trolley QR '${req.params.qrId}':`, error);
     res.status(500).json({ error: 'Failed to fetch flight information.' });
+  }
+});
+
+/**
+ * @swagger
+ * /trolley/{qrId}/config:
+ *   get:
+ *     summary: Get Directional Trolley Config
+ *     description: After the user selects their current location, the API returns the correct detailed trolley configuration for the upcoming flight leg.
+ *     tags: [Trolley Workflow]
+ *     parameters:
+ *       - in: path
+ *         name: qrId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "GATE-TROLLEY-001"
+ *         description: The unique QR ID of the trolley.
+ *       - in: query
+ *         name: location
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "DFW"
+ *         description: The IATA code of the airport the user is currently at.
+ *     responses:
+ *       200:
+ *         description: The detailed trolley configuration for the specified direction.
+ *       400:
+ *         description: Invalid request, e.g., location does not match origin or destination.
+ *       404:
+ *         description: Trolley not found.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/trolley/:qrId/config', async (req, res) => {
+  try {
+    const { qrId } = req.params;
+    const { location } = req.query;
+
+    if (!location) {
+      return res.status(400).json({ error: "Query parameter 'location' is required." });
+    }
+
+    const trolley = await trolleyRepository.findByQrIdWithFlight(qrId);
+
+    if (!trolley) {
+      return res.status(404).json({ error: `Trolley with QR ID '${qrId}' not found.` });
+    }
+
+    let configId;
+    if (location.toUpperCase() === trolley.origin) {
+      configId = trolley.origin_trolley_config_id;
+    } else if (location.toUpperCase() === trolley.destination) {
+      configId = trolley.destination_trolley_config_id;
+    } else {
+      return res.status(400).json({ error: `Invalid location '${location}'. Must be either origin '${trolley.origin}' or destination '${trolley.destination}'.` });
+    }
+
+    const config = await configurationRepository.findFullTrolleyConfigById(configId);
+    res.status(200).json(config);
+
+  } catch (error) {
+    console.error(`Error fetching config for trolley QR '${req.params.qrId}':`, error);
+    res.status(500).json({ error: 'Failed to fetch trolley configuration.' });
+  }
+});
+
+/**
+ * @swagger
+ * /all-data:
+ *   get:
+ *     summary: Get All Nested Data (For Debugging)
+ *     description: A convenience endpoint to get all flight, trolley, and product configuration data in a single, deeply nested JSON object.
+ *     tags: [Debug]
+ *     responses:
+ *       200:
+ *         description: All data, nested.
+ *       500:
+ *         description: Internal server error.
+ */
+router.get('/all-data', async (req, res) => {
+  try {
+    const allData = await flightRepository.findAllWithDetails();
+    res.status(200).json(allData);
+  } catch (error) {
+    console.error('Error fetching all data:', error);
+    res.status(500).json({ error: 'Failed to fetch all data.' });
   }
 });
 
