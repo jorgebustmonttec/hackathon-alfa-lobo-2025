@@ -3,8 +3,13 @@ const productRepository = require('../repositories/productRepository');
 const trolleyRepository = require('../repositories/trolleyRepository');
 const configurationRepository = require('../repositories/configurationRepository');
 const flightRepository = require('../repositories/flightRepository');
+const replenishmentRepository = require('../repositories/replenishmentRepository');
+const userRepository = require('../repositories/userRepository');
 
 const router = express.Router();
+
+// The userAuth middleware is no longer needed for the log endpoint.
+// I am removing it to simplify the code.
 
 /**
  * @swagger
@@ -258,6 +263,170 @@ router.get('/all-data', async (req, res) => {
   } catch (error) {
     console.error('Error fetching all data:', error);
     res.status(500).json({ error: 'Failed to fetch all data.' });
+  }
+});
+
+/**
+ * @swagger
+ * /replenishment/log:
+ *   post:
+ *     summary: Create Replenishment Log
+ *     description: After finishing the replenishment process, the app sends the complete log to be stored. The API calculates the completion time.
+ *     tags: [Trolley Workflow]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: The username of the person submitting the log.
+ *               trolley_qr_id:
+ *                 type: string
+ *                 description: The QR ID of the trolley that was serviced.
+ *               location_code:
+ *                 type: string
+ *                 description: The IATA code of the airport where the service occurred.
+ *               started_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The ISO 8601 timestamp of when the user started the process.
+ *               details:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     product_id:
+ *                       type: string
+ *                       format: uuid
+ *                     position_identifier:
+ *                       type: string
+ *                     expected_quantity:
+ *                       type: integer
+ *                     counted_quantity:
+ *                       type: integer
+ *           example:
+ *             username: "testuser"
+ *             trolley_qr_id: "GATE-TROLLEY-001"
+ *             location_code: "DFW"
+ *             started_at: "2025-10-26T18:30:00Z"
+ *             details:
+ *               - product_id: "a1a1a1a1-1111-1111-1111-000000000001"
+ *                 position_identifier: "A1"
+ *                 expected_quantity: 40
+ *                 counted_quantity: 38
+ *     responses:
+ *       201:
+ *         description: Log created successfully.
+ *       400:
+ *         description: Bad request, e.g., missing data, invalid username, or invalid trolley.
+ */
+router.post('/replenishment/log', async (req, res) => {
+  try {
+    const { username, trolley_qr_id, location_code, started_at, details } = req.body;
+
+    if (!username || !trolley_qr_id || !location_code || !started_at || !details || !Array.isArray(details)) {
+      return res.status(400).json({ error: 'Missing required fields: username, trolley_qr_id, location_code, started_at, and details array.' });
+    }
+
+    const user = await userRepository.findByUsername(username);
+    if (!user) {
+      return res.status(400).json({ error: `User with username '${username}' not found.` });
+    }
+
+    const trolley = await trolleyRepository.findByQrIdWithFlight(trolley_qr_id);
+    if (!trolley) {
+      return res.status(400).json({ error: `Trolley with QR ID '${trolley_qr_id}' not found.` });
+    }
+
+    const logData = {
+      trolley_id: trolley.trolley_id,
+      user_id: user.user_id,
+      flight_route_id: trolley.flight_route_id,
+      location_code,
+      started_at,
+      details,
+    };
+
+    const result = await replenishmentRepository.createLog(logData);
+    res.status(201).json(result);
+
+  } catch (error) {
+    console.error('Error creating replenishment log:', error);
+    res.status(500).json({ error: 'Failed to create replenishment log.' });
+  }
+});
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get All Users
+ *     description: Retrieves a list of all users in the system.
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: A list of users.
+ */
+router.get('/users', async (req, res) => {
+  try {
+    const users = await userRepository.findAll();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users.' });
+  }
+});
+
+/**
+ * @swagger
+ * /logs:
+ *   get:
+ *     summary: Get All Replenishment Logs
+ *     description: Retrieves a summary of all replenishment logs.
+ *     tags: [Logs]
+ *     responses:
+ *       200:
+ *         description: A list of log summaries.
+ */
+router.get('/logs', async (req, res) => {
+  try {
+    const logs = await replenishmentRepository.findAllLogs();
+    res.status(200).json(logs);
+  } catch (error) {
+    console.error('Error fetching logs:', error);
+    res.status(500).json({ error: 'Failed to fetch logs.' });
+  }
+});
+
+/**
+ * @swagger
+ * /logs/user/{userId}:
+ *   get:
+ *     summary: Get Logs by User
+ *     description: Retrieves all replenishment logs submitted by a specific user.
+ *     tags: [Logs]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: A list of log summaries for the specified user.
+ */
+router.get('/logs/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const logs = await replenishmentRepository.findLogsByUserId(userId);
+    res.status(200).json(logs);
+  } catch (error) {
+    console.error(`Error fetching logs for user ${req.params.userId}:`, error);
+    res.status(500).json({ error: 'Failed to fetch user logs.' });
   }
 });
 
