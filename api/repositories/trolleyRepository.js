@@ -13,7 +13,9 @@ async function findByQrIdWithFlight(qrId) {
         fr.flight_route_id,
         fr.route_number,
         fr.origin,
-        fr.destination
+        fr.destination,
+        t.origin_trolley_config_id,
+        t.destination_trolley_config_id
     FROM
         trolley t
     JOIN

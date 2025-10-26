@@ -7,46 +7,42 @@ const db = require('../db');
  * @returns {Promise<object|null>} The fully nested configuration object, or null if not found.
  */
 async function findFullTrolleyConfigById(trolleyConfigId) {
+  // This query was incorrect. It has been replaced with a more robust one
+  // that correctly builds the nested JSON object for a single configuration.
   const query = `
     SELECT
-        tc.trolley_config_id,
-        tc.name,
-        tc.description,
-        -- Aggregate all baskets associated with this trolley config into a JSON array
-        (
-            SELECT json_agg(baskets_agg)
-            FROM (
-                SELECT
-                    tcb.position_identifier,
-                    bc.basket_config_id,
-                    bc.name,
-                    -- Aggregate all products within each basket into a JSON array
-                    (
-                        SELECT json_agg(products_agg)
-                        FROM (
-                            SELECT
-                                p.product_id,
-                                p.name,
-                                p.barcode,
-                                bcp.expected_quantity
-                            FROM product p
-                            JOIN basket_config_product bcp ON p.product_id = bcp.product_id
-                            WHERE bcp.basket_config_id = bc.basket_config_id
-                            ORDER BY p.name
-                        ) AS products_agg
-                    ) AS products
-                FROM basket_config bc
-                JOIN trolley_config_basket tcb ON bc.basket_config_id = tcb.basket_config_id
-                WHERE tcb.trolley_config_id = tc.trolley_config_id
-                ORDER BY tcb.position_identifier
-            ) AS baskets_agg
-        ) AS baskets
+      json_build_object(
+          'trolley_config_id', tc.trolley_config_id,
+          'name', tc.name,
+          'description', tc.description,
+          'baskets', (
+              SELECT COALESCE(json_agg(json_build_object(
+                  'position_identifier', tcb.position_identifier,
+                  'basket_config_id', bc.basket_config_id,
+                  'name', bc.name,
+                  'products', (
+                      SELECT COALESCE(json_agg(json_build_object(
+                          'product_id', p.product_id,
+                          'name', p.name,
+                          'barcode', p.barcode,
+                          'expected_quantity', bcp.expected_quantity
+                      )), '[]'::json)
+                      FROM product p
+                      JOIN basket_config_product bcp ON p.product_id = bcp.product_id
+                      WHERE bcp.basket_config_id = bc.basket_config_id
+                  )
+              ) ORDER BY tcb.position_identifier), '[]'::json)
+              FROM basket_config bc
+              JOIN trolley_config_basket tcb ON bc.basket_config_id = tcb.basket_config_id
+              WHERE tcb.trolley_config_id = tc.trolley_config_id
+          )
+      ) as config
     FROM trolley_config tc
-    WHERE tc.trolley_config_id = $1
-    GROUP BY tc.trolley_config_id;
+    WHERE tc.trolley_config_id = $1;
   `;
   const { rows } = await db.query(query, [trolleyConfigId]);
-  return rows[0] || null;
+  // The result is in a 'config' property, so we extract it.
+  return rows[0] ? rows[0].config : null;
 }
 
 module.exports = {
