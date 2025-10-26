@@ -25,7 +25,8 @@ async function findFullTrolleyConfigById(trolleyConfigId) {
                           'product_id', p.product_id,
                           'name', p.name,
                           'barcode', p.barcode,
-                          'expected_quantity', bcp.expected_quantity
+                          'expected_quantity', bcp.expected_quantity,
+                          'counted_quantity', 0 -- Add a placeholder for the app to fill
                       )), '[]'::json)
                       FROM product p
                       JOIN basket_config_product bcp ON p.product_id = bcp.product_id
