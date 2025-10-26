@@ -35,6 +35,7 @@ export default function LogIn_Back() {
  const [showProducto, setShowProducto] = useState(false);
  const [cantidadesConfirmadas, setCantidadesConfirmadas] = useState({});
  const [completedLocations, setCompletedLocations] = useState(new Set());
+ const [updatedQuantitiesFromProduct, setUpdatedQuantitiesFromProduct] = useState(null);
 
 
  // --- API Health Check ---
@@ -130,6 +131,9 @@ export default function LogIn_Back() {
    setConfigData(configDataFromCarrito);
   }
   
+  // Limpiar cantidades actualizadas al navegar a nueva selección
+  setUpdatedQuantitiesFromProduct(null);
+  
   setUbicacionId(idUbicacion);
   setShowSeleccion(true);
  }, [completedLocations]);
@@ -137,14 +141,35 @@ export default function LogIn_Back() {
  const handleBackToCarrito = useCallback(() => {
   if (ubicacionId) { setCompletedLocations(prev => new Set(prev).add(ubicacionId)); }
   setUbicacionId(null); setConfigData(null); setShowSeleccion(false); setShowProducto(false);
+  setUpdatedQuantitiesFromProduct(null); // Limpiar cantidades actualizadas
  }, [ubicacionId]);
 
- const handleNavigateToProducto = (idUbicacion, cantidades) => {
-  // Logic remains static
-  setCantidadesConfirmadas(cantidades); setUbicacionId(idUbicacion); setShowProducto(true);
+ const handleNavigateToProducto = (idUbicacion, cantidades, productToVerify = null) => {
+  // Si productToVerify está presente, significa que venimos de validación automática
+  if (productToVerify) {
+   console.log(`Navegando a producto ${productToVerify.sku} para verificación`);
+   // Almacenar información adicional sobre el producto que necesita verificación
+   setCantidadesConfirmadas({
+    ...cantidades,
+    _productToVerify: productToVerify
+   });
+  } else {
+   // Lógica normal (navegación manual)
+   setCantidadesConfirmadas(cantidades);
+  }
+  
+  setUbicacionId(idUbicacion); 
+  setShowProducto(true);
  };
 
- const handleBackToSeleccion = () => setShowProducto(false);
+ const handleBackToSeleccion = (updatedQuantities = null) => {
+  // Si hay cantidades actualizadas desde la verificación del producto, almacenarlas
+  if (updatedQuantities) {
+   console.log("Actualizando cantidades desde verificación:", updatedQuantities);
+   setUpdatedQuantitiesFromProduct(updatedQuantities);
+  }
+  setShowProducto(false);
+ };
 
 
  // --- Render Logic ---
@@ -161,7 +186,8 @@ export default function LogIn_Back() {
      ubicacionId={ubicacionId} 
      configData={configData}
      onBack={handleBackToCarrito} 
-     onConfirm={handleNavigateToProducto} 
+     onConfirm={handleNavigateToProducto}
+     updatedQuantities={updatedQuantitiesFromProduct}
     /> 
    );
   }

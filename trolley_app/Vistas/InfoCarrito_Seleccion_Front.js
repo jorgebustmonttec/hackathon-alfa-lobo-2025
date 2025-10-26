@@ -34,16 +34,24 @@ const ListHeader = () => (
 /* ========== Item de la lista ========== */
 const ListItem = ({ item, cantidadActual, onSetCantidad }) => {
   const valorNum = parseInt(cantidadActual, 10) || 0;
+  const expectedNum = item.expectedQuantity || 0;
+  const isMatching = valorNum === expectedNum;
+  
   const onIncrement = () => onSetCantidad(item.sku, valorNum + 1);
   const onDecrement = () => onSetCantidad(item.sku, valorNum - 1); // back valida < 0
   const onChangeText = (texto) => onSetCantidad(item.sku, texto);
 
   return (
-    <View style={styles.itemRow}>
-      {/* Nombre */}
-      <Text style={[styles.itemCell, { flex: 5, fontWeight: '600' }]}>
-        {item.nombre}
-      </Text>
+    <View style={[styles.itemRow, !isMatching && styles.itemRowMismatch]}>
+      {/* Información del producto */}
+      <View style={[styles.itemCell, { flex: 5 }]}>
+        <Text style={[styles.productName, { fontWeight: '600' }]}>
+          {item.nombre}
+        </Text>
+        <Text style={[styles.expectedText, !isMatching && styles.expectedTextWarning]}>
+          Expected: {expectedNum}
+        </Text>
+      </View>
 
       {/* Controles de cantidad */}
       <View style={[styles.itemCell, styles.inputContainer, { flex: 4 }]}>
@@ -52,7 +60,7 @@ const ListItem = ({ item, cantidadActual, onSetCantidad }) => {
         </TouchableOpacity>
 
         <TextInput
-          style={styles.inputQty}
+          style={[styles.inputQty, !isMatching && styles.inputQtyMismatch]}
           value={cantidadActual}
           onChangeText={onChangeText}
           keyboardType="number-pad"
@@ -77,6 +85,7 @@ export default function InfoCarrito_Seleccion_Front({
   cantidades,
   onSetCantidad,
   isConfirmDisabled,
+  hasProductsNeedingVerification = false, // Nuevo prop para indicar si hay productos que necesitan verificación
 }) {
   if (loading) {
     return (
@@ -122,6 +131,11 @@ export default function InfoCarrito_Seleccion_Front({
           <Text style={styles.meta}>
             Inspecting {data.items.length} type(s) of product.
           </Text>
+          {hasProductsNeedingVerification && (
+            <Text style={styles.warningText}>
+              ⚠️ Some quantities don't match expected values
+            </Text> 
+          )}
         </View>
 
         {/* Lista */}
@@ -154,7 +168,9 @@ export default function InfoCarrito_Seleccion_Front({
           disabled={isConfirmDisabled}
           activeOpacity={0.8}
         >
-          <Text style={styles.btnPrimaryText}>CONFIRM</Text>
+          <Text style={styles.btnPrimaryText}>
+            {hasProductsNeedingVerification ? 'VERIFY PRODUCTS' : 'CONFIRM'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -223,6 +239,12 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: '800', color: '#1f2937' },
   meta: { color: '#4b5563', marginTop: 6, fontSize: 14 },
+  warningText: { 
+    color: '#dc3545', 
+    marginTop: 8, 
+    fontSize: 14, 
+    fontWeight: '600' 
+  },
 
   /* Tabla */
   listHeader: {
@@ -255,7 +277,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  itemRowMismatch: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#dc3545',
+    backgroundColor: '#fff5f5',
+  },
   itemCell: { fontSize: 16, color: '#111827' },
+  productName: { fontSize: 16, color: '#111827' },
+  expectedText: { 
+    fontSize: 12, 
+    color: '#6b7280', 
+    marginTop: 2 
+  },
+  expectedTextWarning: { 
+    color: '#dc3545', 
+    fontWeight: '600' 
+  },
 
   /* Cantidad */
   inputContainer: {
@@ -290,6 +327,10 @@ const styles = StyleSheet.create({
     minWidth: 56,
     flex: 1,
     marginHorizontal: 10,
+  },
+  inputQtyMismatch: {
+    borderColor: '#dc3545',
+    backgroundColor: '#fef2f2',
   },
 
   /* Lista vacía */
