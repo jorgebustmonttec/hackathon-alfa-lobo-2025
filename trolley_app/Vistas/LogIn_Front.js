@@ -13,6 +13,8 @@ export default function LogIn_Front({
   isLoading = false,
   errorMessage = '',
   onForgotPassword = () => {},
+  apiStatus,
+
 }) {
   const canSubmit = username?.trim()?.length > 0 && password?.trim()?.length > 0 && !isLoading;
 
@@ -29,7 +31,13 @@ export default function LogIn_Front({
 
           <View style={styles.loginCard} accessibilityRole="form" accessible>
             <Text style={styles.title}>Log In</Text>
-            <Text style={styles.subtitle}>Welcome</Text>
+            <Text style={styles.subtitle}>Waaaaaelcome</Text>
+
+            {/* ▼▼▼ Display API Status ▼▼▼ */}
+            {apiStatus && ( // Only render if apiStatus has a value
+            <Text style={styles.apiStatusText}>{apiStatus}</Text>
+            )}
+            {/* ▲▲▲ */}
 
             <View style={styles.inputContainer}>
               <TextInput
