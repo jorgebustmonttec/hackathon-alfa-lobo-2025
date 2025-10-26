@@ -24,7 +24,7 @@ const resolveUbicacion = async (ubicacionId) => {
 
 export default function InfoCarrito_Producto_Back({
  ubicacionId,
- cantidadesConfirmadas, // Objeto: { 'SKU-XXX': '10', 'SKU-YYY': '2', _productToVerify?: product } <- Cantidad INICIAL
+ cantidadesConfirmadas, // Objeto: { 'SKU-XXX': '10', 'SKU-YYY': '2' } <- Cantidad INICIAL
  onBack,        // handleBackToSeleccion
  onCompleteAll,    // handleBackToCarrito
 }) {
@@ -46,55 +46,33 @@ export default function InfoCarrito_Producto_Back({
   try {
    setLoading(true);
    setError('');
+   const dataCajon = await resolveUbicacion(ubicacionId); // Trae la cantidad REQUERIDA original
    
-   // Verificar si venimos de una validación automática
-   const productToVerify = cantidadesConfirmadas._productToVerify;
+   // Combinar datos: cantidadInicial de 'cantidadesConfirmadas' y cantidadRequerida de 'dataCajon'
+   const listaCombinada = dataCajon.items
+    .filter(item => cantidadesConfirmadas[item.sku] !== undefined) // Solo los que estaban en la pantalla anterior
+    .map(item => {
+          const cantidadInicial = parseInt(cantidadesConfirmadas[item.sku], 10) || 0;
+          // Usamos la 'cantidad' original de la base como la requerida
+          const cantidadRequerida = item.cantidad; 
+          
+          return {
+       sku: item.sku,
+       nombre: item.nombre,
+            cantidadInicial: cantidadInicial,     // <-- La que pusimos en Seleccion
+       cantidadRequerida: cantidadRequerida, // <-- La original de la base de datos
+      };
+        });
    
-   if (productToVerify) {
-    // Caso especial: solo verificar un producto específico
-    console.log("Modo verificación: solo verificando producto", productToVerify.sku);
-    const cantidadInicial = parseInt(cantidadesConfirmadas[productToVerify.sku], 10) || 0;
-    
-    const productoParaVerificar = {
-     sku: productToVerify.sku,
-     nombre: productToVerify.nombre,
-     cantidadInicial: cantidadInicial,
-     cantidadRequerida: productToVerify.expectedQuantity
-    };
-    
-    setProductosPorChecar([productoParaVerificar]);
-    setProductoActual(productoParaVerificar);
-    setCantidadActualScan(cantidadInicial);
+   setProductosPorChecar(listaCombinada);
+   
+   if (listaCombinada.length === 0) {
+    console.log("No hay productos en esta selección. Volviendo...");
+    onCompleteAll();
    } else {
-    // Lógica original para todos los productos
-    const dataCajon = await resolveUbicacion(ubicacionId); // Trae la cantidad REQUERIDA original
-    
-    // Combinar datos: cantidadInicial de 'cantidadesConfirmadas' y cantidadRequerida de 'dataCajon'
-    const listaCombinada = dataCajon.items
-     .filter(item => cantidadesConfirmadas[item.sku] !== undefined) // Solo los que estaban en la pantalla anterior
-     .map(item => {
-           const cantidadInicial = parseInt(cantidadesConfirmadas[item.sku], 10) || 0;
-           // Usamos la 'cantidad' original de la base como la requerida
-           const cantidadRequerida = item.cantidad; 
-           
-           return {
-        sku: item.sku,
-        nombre: item.nombre,
-             cantidadInicial: cantidadInicial,     // <-- La que pusimos en Seleccion
-        cantidadRequerida: cantidadRequerida, // <-- La original de la base de datos
-       };
-         });
-    
-    setProductosPorChecar(listaCombinada);
-    
-    if (listaCombinada.length === 0) {
-     console.log("No hay productos en esta selección. Volviendo...");
-     onCompleteAll();
-    } else {
-         // Establecer el primer producto y SU cantidad inicial
-     setProductoActual(listaCombinada[0]);
-         setCantidadActualScan(listaCombinada[0].cantidadInicial); // <-- Iniciar conteo con la cantidad inicial
-    }
+        // Establecer el primer producto y SU cantidad inicial
+    setProductoActual(listaCombinada[0]);
+        setCantidadActualScan(listaCombinada[0].cantidadInicial); // <-- Iniciar conteo con la cantidad inicial
    }
   } catch (e) {
    setError(e?.message || 'No fue posible cargar los productos.');
@@ -137,20 +115,6 @@ export default function InfoCarrito_Producto_Back({
  };
 
  const handleNextProduct = () => {
-  // Si estamos en modo verificación (solo un producto), regresar a selección
-  if (cantidadesConfirmadas._productToVerify) {
-   console.log("Producto verificado. Regresando a selección.");
-   
-   // Preparar las cantidades actualizadas para enviar de vuelta
-   const updatedQuantities = {
-    [productoActual.sku]: cantidadActualScan
-   };
-   
-   onBack(updatedQuantities); // Regresar a InfoCarrito_Seleccion con cantidades actualizadas
-   return;
-  }
-  
-  // Lógica original para múltiples productos
   const currentIndex = productosPorChecar.findIndex(p => p.sku === productoActual.sku);
   const nextProduct = productosPorChecar[currentIndex + 1] || null;
 
