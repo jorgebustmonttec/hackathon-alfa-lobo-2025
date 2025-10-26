@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  gridBtnDefault: { backgroundColor: '#E0ECFF', borderColor: '#A5B4FC' },
+  gridBtnDefault: { backgroundColor: '#a3c9eaff', borderColor: '#a0a7c9ff' },
   gridBtnActive: { backgroundColor: '#2563EB', borderColor: '#1E3A8A' },
   gridBtnText: {
     fontSize: 18,
@@ -321,12 +321,12 @@ const styles = StyleSheet.create({
 
   confirmButton: {
     flex: 1,
-    backgroundColor: '#0d6efd',
+    backgroundColor: '#78b2f8ff',
     paddingVertical: 16,
     borderRadius: 12,
     marginLeft: 8,
     alignItems: 'center',
   },
-  confirmButtonComplete: { backgroundColor: '#60A5FA' },
+  confirmButtonComplete: { backgroundColor: '#0d6efd' },
   confirmButtonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });
