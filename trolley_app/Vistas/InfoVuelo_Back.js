@@ -12,6 +12,7 @@ export default function InfoVuelo_Back({ qrData, onBack, onContinue }) {
  const [selectedOption, setSelectedOption] = useState('');
  const [ciudadOrigen, setCiudadOrigen] = useState('');
  const [ciudadDestino, setCiudadDestino] = useState('');
+ const [flightInfo, setFlightInfo] = useState(null); // Store complete flight info from API
  const [isLoadingFlight, setIsLoadingFlight] = useState(true);
 
  // --- Fetch Flight Data via API ---
@@ -35,6 +36,7 @@ export default function InfoVuelo_Back({ qrData, onBack, onContinue }) {
    setIsLoadingFlight(true);
    setCiudadOrigen(''); // Clear previous values while loading
    setCiudadDestino('');
+   setFlightInfo(null);
 
    try {
     const response = await fetch(`${API_BASE_URL}/trolley/${qrId}/flight`); // GET /api/trolley/{qrId}/flight
@@ -44,6 +46,7 @@ export default function InfoVuelo_Back({ qrData, onBack, onContinue }) {
      Alert.alert("Not Found", `No flight information found for trolley ${qrId}.`, [{ text: "OK", onPress: onBack }]);
      setCiudadOrigen('Not Found');
      setCiudadDestino('Not Found');
+     setFlightInfo(null);
      return; // Stop processing
     }
     if (!response.ok) {
@@ -56,15 +59,19 @@ export default function InfoVuelo_Back({ qrData, onBack, onContinue }) {
     const flightInfo = await response.json(); // Expect { origin: '...', destination: '...' }
     console.log("Flight info received:", flightInfo);
 
-    // Update state with data from API
+    // Update state with data from API - store full flight info
     setCiudadOrigen(flightInfo.origin_city || 'Unknown Origin');
     setCiudadDestino(flightInfo.destination_city || 'Unknown Destination');
+    
+    // Store the complete flight info for later use
+    setFlightInfo(flightInfo);
 
    } catch (error) {
     console.error("Flight API call failed:", error);
     Alert.alert('Network Error', 'Could not fetch flight information. Please check connection.', [{ text: "OK", onPress: onBack }]);
     setCiudadOrigen('Error');
     setCiudadDestino('Error');
+    setFlightInfo(null);
    } finally {
     setIsLoadingFlight(false);
    }
@@ -96,13 +103,14 @@ export default function InfoVuelo_Back({ qrData, onBack, onContinue }) {
       Alert.alert('Selection Required', 'Please select which city you are coming from to continue.');
       return;
     }
-    // Pass collected data, including API-fetched cities
+    // Pass collected data, including API-fetched cities and IATA codes
     const flightData = {
       qrData,
       selectedCity: selectedOption,
-      ciudadOrigen, // From API
-      ciudadDestino, // From API
-      selectedCityInfo
+      ciudadOrigen, // From API (city names)
+      ciudadDestino, // From API (city names)
+      selectedCityInfo,
+      flightInfo // Complete flight info including IATA codes
     };
     onContinue?.(flightData);
  }, [hasSelection, selectedOption, ciudadOrigen, ciudadDestino, selectedCityInfo, qrData, onContinue]);

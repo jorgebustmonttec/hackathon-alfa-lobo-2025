@@ -24,12 +24,14 @@ export default function LogIn_Back() {
  const [loginError, setLoginError] = useState('');
  const [apiStatus, setApiStatus] = useState('Checking API status...');
 
- // Navigation States (remain static for now beyond InfoVuelo)
+ // Navigation States
  const [scannedData, setScannedData] = useState(null);
+ const [flightData, setFlightData] = useState(null); // Store flight data from InfoVuelo
  const [showInfoVuelo, setShowInfoVuelo] = useState(false);
  const [showQrResult, setShowQrResult] = useState(false);
  const [showSeleccion, setShowSeleccion] = useState(false);
  const [ubicacionId, setUbicacionId] = useState(null);
+ const [configData, setConfigData] = useState(null); // Store config data for selections
  const [showProducto, setShowProducto] = useState(false);
  const [cantidadesConfirmadas, setCantidadesConfirmadas] = useState({});
  const [completedLocations, setCompletedLocations] = useState(new Set());
@@ -104,42 +106,37 @@ export default function LogIn_Back() {
  // --- Logout Handler ---
  const handleLogout = () => {
   setIsLoggedIn(false);
-  setUsername(''); setPassword(''); setScannedData(null);
+  setUsername(''); setPassword(''); setScannedData(null); setFlightData(null);
   setShowQrResult(false); setShowSeleccion(false); setUbicacionId(null);
-  setShowProducto(false); setCantidadesConfirmadas({}); setShowInfoVuelo(false);
+  setConfigData(null); setShowProducto(false); setCantidadesConfirmadas({}); setShowInfoVuelo(false);
   setCompletedLocations(new Set());
   setLoginError('');
-  // Re-check API status on logout? Optional.
-  // setApiStatus('Checking API status...');
-  // checkApiHealth(); // You could re-run the health check here if desired
  };
 
  // --- Navigation Handlers (Static data beyond this point) ---
  const handleBackToCamera = () => {
-  setShowQrResult(false); setScannedData(null); setShowSeleccion(false);
-  setUbicacionId(null); setShowProducto(false); setCantidadesConfirmadas({});
+  setShowQrResult(false); setScannedData(null); setFlightData(null); setShowSeleccion(false);
+  setUbicacionId(null); setConfigData(null); setShowProducto(false); setCantidadesConfirmadas({});
   setShowInfoVuelo(false);
   setCompletedLocations(new Set());
  };
 
- const handleNavigateToSeleccion = useCallback(async (idUbicacion) => {
-  // Logic remains static using resolveUbicacion
+ const handleNavigateToSeleccion = useCallback(async (idUbicacion, configDataFromCarrito) => {
+  // Check if location is already completed
   if (completedLocations.has(idUbicacion)) return;
-  try {
-   const dataCajon = await resolveUbicacion(idUbicacion);
-   if (!dataCajon?.items?.length) {
-    setCompletedLocations(prev => new Set(prev).add(idUbicacion));
-    return;
-   }
-  } catch (error) { console.error(`Error checking location ${idUbicacion}:`, error); return; }
+  
+  // Store config data for the selection view
+  if (configDataFromCarrito) {
+   setConfigData(configDataFromCarrito);
+  }
+  
   setUbicacionId(idUbicacion);
   setShowSeleccion(true);
  }, [completedLocations]);
 
  const handleBackToCarrito = useCallback(() => {
-  // Logic remains static
   if (ubicacionId) { setCompletedLocations(prev => new Set(prev).add(ubicacionId)); }
-  setUbicacionId(null); setShowSeleccion(false); setShowProducto(false);
+  setUbicacionId(null); setConfigData(null); setShowSeleccion(false); setShowProducto(false);
  }, [ubicacionId]);
 
  const handleNavigateToProducto = (idUbicacion, cantidades) => {
@@ -157,9 +154,16 @@ export default function LogIn_Back() {
    return ( <InfoCarrito_Producto_Back ubicacionId={ubicacionId} cantidadesConfirmadas={cantidadesConfirmadas} onBack={handleBackToSeleccion} onCompleteAll={handleBackToCarrito} /> );
   }
 
-  // 2) Show Seleccion View (Static Data Logic)
+  // 2) Show Seleccion View (Now uses API config data)
   if (showSeleccion && ubicacionId) {
-   return ( <InfoCarrito_Seleccion_Back ubicacionId={ubicacionId} onBack={handleBackToCarrito} onConfirm={handleNavigateToProducto} /> );
+   return ( 
+    <InfoCarrito_Seleccion_Back 
+     ubicacionId={ubicacionId} 
+     configData={configData}
+     onBack={handleBackToCarrito} 
+     onConfirm={handleNavigateToProducto} 
+    /> 
+   );
   }
 
   // 3) Show Flight Info View (Uses API for flight data)
@@ -168,21 +172,21 @@ export default function LogIn_Back() {
     <InfoVuelo_Back
      qrData={scannedData}
      onBack={handleBackToCamera} // Go back to QR scanner
-     onContinue={(flightData) => {
-      // User confirmed flight, proceed to show cart (using static cart data)
-      console.log('[InfoVuelo] continue:', flightData);
-      // NOTE: flightData contains API origin/destination, but we are not using it in InfoCarrito yet
+     onContinue={(receivedFlightData) => {
+      // User confirmed flight, store flight data and proceed to show cart
+      console.log('[InfoVuelo] continue:', receivedFlightData);
+      setFlightData(receivedFlightData); // Store the flight data for InfoCarrito
       setShowInfoVuelo(false);
-      setShowQrResult(true); // <<<<<<<<<<<< SHOW STATIC CART VIEW >>>>>>>>>>>>
+      setShowQrResult(true); // Show cart view with API integration
      }}
     /> );
   }
 
-  // 4) Show Cart View (Static Data Logic, except for cartId from QR)
-  if (showQrResult && scannedData) {
+  // 4) Show Cart View (Now uses API integration with flight data)
+  if (showQrResult && flightData) {
    return (
     <InfoCarrito_Back
-     cartId={(scannedData.data || '').trim()} // Use scanned ID (but backend forces 'CARRITO-001' for now)
+     flightData={flightData} // Pass complete flight data instead of just cartId
      onBack={handleBackToCamera}
      onNavigateToSeleccion={handleNavigateToSeleccion}
      completedLocations={completedLocations}

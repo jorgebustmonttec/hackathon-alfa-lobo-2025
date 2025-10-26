@@ -2,45 +2,38 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import InfoCarrito_Seleccion_Front from './InfoCarrito_Seleccion_Front';
 
-// Simula la búsqueda de los items (sin cambios en esta función)
-const resolveUbicacion = async (ubicacionId) => {
- // Simula latencia
+// Función para extraer los productos de un basket específico desde la configuración de la API
+const resolveUbicacion = async (ubicacionId, configData) => {
+ // Simular latencia para mantener la experiencia de usuario
  await new Promise(r => setTimeout(r, 400));
- // Base de datos estática
- const base = {
-  'A1': {
-   id: 'A1',
-   items: [
-    { sku: 'SKU-COKE-01', cantidad: 15, nombre: 'Coca Cola 600ml' },
-   ],
-  },
-  'A2': {
-   id: 'A2',
-   items: [
-    { sku: 'SKU-GANS-01', cantidad: 10, nombre: 'Gansito' },
-    { sku: 'SKU-CHOK-01', cantidad: 12, nombre: 'Chokis' },
-   ],
-  },
-  'A3': { // El de tu mockup
-   id: 'A3',
-   items: [
-    { sku: 'SKU-COKE-02', cantidad: 15, nombre: 'Coca Cola' },
-    { sku: 'SKU-CIEL-01', cantidad: 3, nombre: 'Agua Ciel' },
-   ],
-  },
-  'A4': { id: 'A4', items: [] },
-  'B1': { id: 'B1', items: [{ sku: 'SKU-JUMX-01', cantidad: 8, nombre: 'Jumex Mango' }] },
-  'B2': { id: 'B2', items: [{ sku: 'SKU-VALLE-01', cantidad: 7, nombre: 'Jugo Del Valle' }] },
-  'B3': { id: 'B3', items: [{ sku: 'SKU-REDI-01', cantidad: 5, nombre: 'Red Bull' }] },
- };
- if (!base[ubicacionId]) {
+ 
+ if (!configData || !configData.baskets) {
   return { id: ubicacionId || 'Error', items: [] };
  }
- return JSON.parse(JSON.stringify(base[ubicacionId]));
+
+ // Buscar el basket que corresponde al ubicacionId
+ const basket = configData.baskets.find(b => b.position_identifier === ubicacionId);
+ 
+ if (!basket || !basket.products) {
+  return { id: ubicacionId, items: [] };
+ }
+
+ // Transformar los productos de la API al formato esperado por el frontend
+ const items = basket.products.map(product => ({
+  sku: product.product_id, // Usar product_id como SKU
+  cantidad: product.expected_quantity || 0,
+  nombre: product.name || 'Unknown Product',
+  barcode: product.barcode || ''
+ }));
+
+ return {
+  id: ubicacionId,
+  items: items
+ };
 };
 
-// ▼▼▼ CAMBIO 1: Aceptar 'onConfirm' en las props ▼▼▼
-export default function InfoCarrito_Seleccion_Back({ ubicacionId, onBack, onConfirm }) {
+// ▼▼▼ CAMBIO 1: Aceptar 'configData' y 'onConfirm' en las props ▼▼▼
+export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, onBack, onConfirm }) {
  const [loading, setLoading] = useState(true);
  const [data, setData] = useState(null);
  const [error, setError] = useState('');
@@ -50,19 +43,28 @@ export default function InfoCarrito_Seleccion_Back({ ubicacionId, onBack, onConf
   try {
    setLoading(true);
    setError('');
-   const result = await resolveUbicacion(ubicacionId);
+   
+   console.log(`Loading items for location: ${ubicacionId}`);
+   console.log('Config data available:', !!configData);
+   
+   const result = await resolveUbicacion(ubicacionId, configData);
    setData(result);
+   
+   // Inicializar cantidades con los valores esperados de la API
    const initialCantidades = Object.fromEntries(
     result.items.map(item => [item.sku, item.cantidad.toString()])
    );
    setCantidades(initialCantidades);
+   
+   console.log(`Loaded ${result.items.length} items for ${ubicacionId}`);
   } catch (e) {
+   console.error('Error loading items:', e);
    setError(e?.message || 'No fue posible obtener los items.');
    setData(null);
   } finally {
    setLoading(false);
   }
- }, [ubicacionId]);
+ }, [ubicacionId, configData]);
 
  useEffect(() => {
   load();
