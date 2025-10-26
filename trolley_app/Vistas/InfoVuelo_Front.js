@@ -60,15 +60,15 @@ export default function InfoVuelo_Front({
             onPress={onBack}
             activeOpacity={0.7}
           >
-            <Text style={styles.backButtonText}>← Regresar</Text>
+            <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>Confirmación de Ciudad</Text>
+          <Text style={styles.title}>City Confirmation</Text>
         </View>
 
         {/* ÚNICO CUADRO */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Selecciona la ciudad donde te encuentras</Text>
+          <Text style={styles.cardTitle}>Select the city you are coming from</Text>
 
           <View style={styles.optionsGroup}>
             <OptionRow label={ciudadOrigen} value="origen" />
@@ -96,7 +96,7 @@ export default function InfoVuelo_Front({
               hasSelection ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
             ]}
           >
-            {hasSelection ? 'Continuar con el Carrito' : 'Selecciona una Ciudad'}
+            {hasSelection ? 'Continue to Cart' : 'Select a City'}
           </Text>
         </TouchableOpacity>
       </View>

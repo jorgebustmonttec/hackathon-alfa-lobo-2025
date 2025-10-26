@@ -41,7 +41,7 @@ export default function LogIn_Front({
                 autoCapitalize="none"
                 autoCorrect={false}
                 textContentType="username"
-                accessibilityLabel="Campo de usuario"
+                accessibilityLabel="Username field"
                 selectionColor="#2563EB"
               />
             </View>
@@ -55,7 +55,7 @@ export default function LogIn_Front({
                 onChangeText={onChangePassword}
                 secureTextEntry
                 textContentType="password"
-                accessibilityLabel="Campo de contraseña"
+                accessibilityLabel="Password field"
                 selectionColor="#2563EB"
               />
             </View>
@@ -74,7 +74,7 @@ export default function LogIn_Front({
               {isLoading ? (
                 <ActivityIndicator />
               ) : (
-                <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                <Text style={styles.loginButtonText}>Sign In</Text>
               )}
             </TouchableOpacity>
           </View>

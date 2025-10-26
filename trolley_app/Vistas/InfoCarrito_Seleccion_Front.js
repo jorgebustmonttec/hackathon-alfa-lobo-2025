@@ -1,262 +1,342 @@
 // Vistas/InfoCarrito_Seleccion_Front.js
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+  Platform,
+  StatusBar as RNStatusBar,
+} from 'react-native';
 
-// Componente para la cabecera de la lista (Texto actualizado)
+/* ========== Cabecera de la tabla ========== */
 const ListHeader = () => (
- <View style={[styles.itemRow, styles.listHeader]}>
-  <Text style={[styles.itemCell, styles.listHeaderCell, { flex: 5 }]}>Producto</Text>
-  <Text style={[styles.itemCell, styles.listHeaderCell, { flex: 4, textAlign: 'center' }]}>Cantidad</Text>
- </View>
+  <View style={[styles.itemRow, styles.listHeader]}>
+    <Text style={[styles.itemCell, styles.listHeaderCell, { flex: 5 }]}>
+      Product
+    </Text>
+    <Text
+      style={[
+        styles.itemCell,
+        styles.listHeaderCell,
+        { flex: 4, textAlign: 'center' },
+      ]}
+    >
+      Quantity
+    </Text>
+  </View>
 );
 
-// ▼▼▼ Componente ListItem TOTALMENTE NUEVO ▼▼▼
+/* ========== Item de la lista ========== */
 const ListItem = ({ item, cantidadActual, onSetCantidad }) => {
-
-  // Convertir el valor (string) a número para poder sumar/restar
   const valorNum = parseInt(cantidadActual, 10) || 0;
-
-  // Funciones para los botones +/-
   const onIncrement = () => onSetCantidad(item.sku, valorNum + 1);
-  const onDecrement = () => onSetCantidad(item.sku, valorNum - 1); // El Back maneja que no sea < 0
-
-  // Función para el TextInput
+  const onDecrement = () => onSetCantidad(item.sku, valorNum - 1); // back valida < 0
   const onChangeText = (texto) => onSetCantidad(item.sku, texto);
 
- return (
-  <View style={styles.itemRow}>
-   {/* Nombre del Producto */}
-   <Text style={[styles.itemCell, { flex: 5, fontWeight: '600' }]}>{item.nombre}</Text>
+  return (
+    <View style={styles.itemRow}>
+      {/* Nombre */}
+      <Text style={[styles.itemCell, { flex: 5, fontWeight: '600' }]}>
+        {item.nombre}
+      </Text>
 
-   {/* Contenedor de Input */}
-   <View style={[styles.itemCell, styles.inputContainer, { flex: 4 }]}>
-        {/* Botón Menos (-) */}
-    <TouchableOpacity style={styles.btnQty} onPress={onDecrement}>
-     <Text style={styles.btnQtyText}>-</Text>
-    </TouchableOpacity>
+      {/* Controles de cantidad */}
+      <View style={[styles.itemCell, styles.inputContainer, { flex: 4 }]}>
+        <TouchableOpacity style={styles.btnQty} onPress={onDecrement}>
+          <Text style={styles.btnQtyText}>-</Text>
+        </TouchableOpacity>
 
-        {/* Input Numérico */}
-    <TextInput
+        <TextInput
           style={styles.inputQty}
-          value={cantidadActual}      // Recibe el valor (string) del Back
-          onChangeText={onChangeText} // Envía el texto (string) al Back
-          keyboardType="number-pad"   // Muestra teclado numérico
-          maxLength={3}               // Límite de 3 dígitos
+          value={cantidadActual}
+          onChangeText={onChangeText}
+          keyboardType="number-pad"
+          maxLength={3}
           textAlign="center"
         />
 
-        {/* Botón Más (+) */}
-    <TouchableOpacity style={styles.btnQty} onPress={onIncrement}>
-     <Text style={styles.btnQtyText}>+</Text>
-    </TouchableOpacity>
-   </View>
-  </View>
- );
+        <TouchableOpacity style={styles.btnQty} onPress={onIncrement}>
+          <Text style={styles.btnQtyText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 };
-// ▲▲▲
-
 
 export default function InfoCarrito_Seleccion_Front({
- loading,
- error,
- data,    // { id, items[] }
- onBack,
- onConfirm,
-  // ▼▼▼ RECIBIR NUEVAS PROPS ▼▼▼
+  loading,
+  error,
+  data, // { id, items[] }
+  onBack,
+  onConfirm,
   cantidades,
   onSetCantidad,
   isConfirmDisabled,
-  // ▲▲▲
 }) {
- if (loading) {
-    // ... (sin cambios)
-  return (
-   <View style={styles.center}>
-    <ActivityIndicator />
-    <Text style={{ marginTop: 8 }}>Cargando items...</Text>
-   </View>
-  );
- }
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.center}>
+          <ActivityIndicator />
+          <Text style={{ marginTop: 8 }}>Loading items...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
- if (error || !data) {
-    // ... (sin cambios)
-  return (
-   <View style={styles.center}>
-    <Text style={{ color: 'tomato', marginBottom: 12 }}>{error || 'Items no disponibles'}</Text>
-    <TouchableOpacity style={[styles.btn, { backgroundColor: '#6c757d' }]} onPress={onBack}>
-     <Text style={styles.btnText}>← Volver</Text>
-    </TouchableOpacity>
-   </View>
-  );
- }
-
- return (
-  <View style={styles.container}>
-   {/* --- BOTÓN DE REGRESO (Sin cambios) --- */}
-   <TouchableOpacity style={styles.backButton} onPress={onBack}>
-    <Text style={styles.backButtonText}>← Volver al Carrito</Text>
-   </TouchableOpacity>
-
-   {/* --- CABECERA DEL CAJÓN (Sin cambios) --- */}
-   <View style={styles.headerCard}>
-    <Text style={styles.title}>Cajón: {data.id}</Text>
-    <Text style={styles.meta}>Inspeccionando {data.items.length} tipo(s) de producto.</Text>
-   </View>
-
-   {/* --- LISTA DE ITEMS --- */}
-   <FlatList
-    data={data.items}
-    keyExtractor={(item) => item.sku}
-    ListHeaderComponent={ListHeader}
-        // ▼▼▼ PASAR NUEVAS PROPS A ListItem ▼▼▼
-    renderItem={({ item }) => (
-     <ListItem 
-      item={item} 
-      cantidadActual={cantidades[item.sku]} // Pasa el string de la cantidad
-      onSetCantidad={onSetCantidad}       // Pasa la función controladora
-     />
-    )}
-        // ▲▲▲
-    ListEmptyComponent={
-     <View style={styles.emptyList}>
-      <Text style={styles.emptyListText}>Este cajón está vacío.</Text>
-     </View>
-    }
-        // ▼▼▼ BOTÓN CONFIRMAR AHORA ES CONDICIONAL ▼▼▼
-    ListFooterComponent={
-     <TouchableOpacity 
-            style={[styles.btn, isConfirmDisabled && styles.btnDisabled]} // Estilo deshabilitado
-            onPress={onConfirm}
-            disabled={isConfirmDisabled} // Prop deshabilitado
+  if (error || !data) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.center}>
+          <Text style={{ color: 'tomato', marginBottom: 12 }}>
+            {error || 'Items not available'}
+          </Text>
+          <TouchableOpacity
+            style={[styles.btnSecondary, { marginTop: 4 }]}
+            onPress={onBack}
           >
-      <Text style={styles.btnText}>CONFIRMAR</Text>
-     </TouchableOpacity>
-    }
-        // ▲▲▲
-    contentContainerStyle={{ paddingBottom: 40 }}
-   />
-  </View>
- );
+            <Text style={styles.btnSecondaryText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      {/* Contenido principal */}
+      <View style={styles.pageContent}>
+        {/* Botón tipo píldora */}
+        <TouchableOpacity style={styles.backPillButton} onPress={onBack} activeOpacity={0.8}>
+          <Text style={styles.backPillButtonText}>← Back</Text>
+        </TouchableOpacity>
+
+        {/* Header card (bajado un poco respecto al botón volver) */}
+        <View style={styles.headerCard}>
+          <Text style={styles.title}>Drawer: {data.id}</Text>
+          <Text style={styles.meta}>
+            Inspecting {data.items.length} type(s) of product.
+          </Text>
+        </View>
+
+        {/* Lista */}
+        <FlatList
+          data={data.items}
+          keyExtractor={(item) => item.sku}
+          ListHeaderComponent={ListHeader}
+          renderItem={({ item }) => (
+            <ListItem
+              item={item}
+              cantidadActual={cantidades[item.sku]}
+              onSetCantidad={onSetCantidad}
+            />
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyList}>
+              <Text style={styles.emptyListText}>This drawer is empty.</Text>
+            </View>
+          }
+          contentContainerStyle={{ paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+
+      {/* Footer: sin cuadro blanco, usando el mismo fondo de la pantalla */}
+      <View style={styles.footerBar}>
+        <TouchableOpacity
+          style={[styles.btnPrimary, isConfirmDisabled && styles.btnDisabled]}
+          onPress={onConfirm}
+          disabled={isConfirmDisabled}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.btnPrimaryText}>CONFIRM</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
 }
 
-// ▼▼▼ ESTILOS ACTUALIZADOS ▼▼▼
+/* ===================== ESTILOS ===================== */
+const PAGE_PADDING_H = 16;
+const CARD_RADIUS = 14;
+
 const styles = StyleSheet.create({
- center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: '#f5f5f5' },
- container: { flex: 1, padding: 16, backgroundColor: '#f7f8fa' },
- backButton: {
-  paddingVertical: 8,
-  paddingHorizontal: 4,
-  marginBottom: 8,
-  alignSelf: 'flex-start',
- },
- backButtonText: {
-  color: '#0d6efd',
-  fontSize: 16,
-  fontWeight: '700',
- },
- headerCard: { 
-  backgroundColor: '#fff', 
-  borderRadius: 12, 
-  padding: 16, 
-  elevation: 2, 
-  marginBottom: 16 
- },
- title: { fontSize: 22, fontWeight: '800', color: '#222' },
- meta: { color: '#555', marginTop: 4, fontSize: 14 },
- listHeader: {
-  backgroundColor: 'transparent',
-  borderBottomWidth: 1.5,
-  borderColor: '#ddd',
-  elevation: 0,
-  marginBottom: 6,
-  paddingVertical: 8,
-    paddingHorizontal: 14, // Alinea con el padding de itemRow
- },
- listHeaderCell: {
-  color: '#666',
-  fontWeight: '800',
-  fontSize: 13,
-  textTransform: 'uppercase',
- },
- itemRow: {
-  backgroundColor: '#fff', 
-  borderRadius: 10, 
-  paddingHorizontal: 14,
-  paddingVertical: 10,
-  marginVertical: 5,
-  flexDirection: 'row', 
-  alignItems: 'center', 
-  elevation: 1,
- },
- itemCell: {
-  fontSize: 16,
-  color: '#333',
-  alignItems: 'center',
- },
+  safe: {
+    flex: 1,
+    backgroundColor: '#f6f7f9',
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
+  },
 
-  // --- Estilos de 'bool' eliminados ---
+  pageContent: {
+    flex: 1,
+    paddingHorizontal: PAGE_PADDING_H,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
 
-  // ▼▼▼ NUEVOS ESTILOS PARA INPUT DE CANTIDAD ▼▼▼
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#f6f7f9',
+  },
+
+  /* === Botón tipo píldora (con sombra y gris más oscuro) === */
+  backPillButton: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0E2E5',
+    borderRadius: 30,
+    paddingVertical: 9,
+    paddingHorizontal: 20,
+    marginBottom: 16,            // ⬅️ más espacio para separar del card
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4.5,
+    elevation: 4,
+  },
+  backPillButtonText: {
+    color: '#666363ff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  /* Header card */
+  headerCard: {
+    backgroundColor: '#fff',
+    borderRadius: CARD_RADIUS,
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  title: { fontSize: 24, fontWeight: '800', color: '#1f2937' },
+  meta: { color: '#4b5563', marginTop: 6, fontSize: 14 },
+
+  /* Tabla */
+  listHeader: {
+    backgroundColor: 'transparent',
+    borderBottomWidth: 1.5,
+    borderColor: '#e5e7eb',
+    marginBottom: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  listHeaderCell: {
+    color: '#6b7280',
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+
+  itemRow: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  itemCell: { fontSize: 16, color: '#111827' },
+
+  /* Cantidad */
   inputContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   btnQty: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
+    backgroundColor: '#f0f3f8',
+    borderRadius: 10,
     width: 36,
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#e2e8f0',
   },
   btnQtyText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '800',
+    color: '#1f2937',
+    lineHeight: 22,
   },
   inputQty: {
-    borderBottomWidth: 1.5,
-    borderColor: '#0d6efd',
+    borderBottomWidth: 1.6,
+    borderColor: '#3F8DD1',
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     fontSize: 18,
     fontWeight: '700',
-    color: '#222',
-    minWidth: 50, // Ancho mínimo
-    flex: 1, // Ocupa el espacio restante
-    marginHorizontal: 8,
+    color: '#111827',
+    minWidth: 56,
+    flex: 1,
+    marginHorizontal: 10,
   },
-  // ▲▲▲
 
- emptyList: {
-  padding: 20,
-  alignItems: 'center',
-  marginTop: 20,
-  backgroundColor: '#fff',
-  borderRadius: 10,
- },
- emptyListText: {
-  fontSize: 16,
-  color: '#777',
- },
- btn: { 
-  backgroundColor: '#0d6efd', 
-  padding: 14,
- borderRadius: 8,
-  elevation: 1,
-    marginTop: 24, // Espacio arriba
- },
-  btnDisabled: {
-    backgroundColor: '#a0a0a0', // Color gris cuando está deshabilitado
-    elevation: 0,
+  /* Lista vacía */
+  emptyList: {
+    padding: 20,
+    alignItems: 'center',
+    marginTop: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
- btnText: { 
-  color: '#fff', 
-  fontWeight: '800', 
-  textAlign: 'center',
-  fontSize: 16,
- }
+  emptyListText: { fontSize: 16, color: '#6b7280' },
+
+  /* Botones */
+  btnPrimary: {
+    backgroundColor: '#1638BD',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  btnPrimaryText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  btnSecondary: {
+    backgroundColor: '#6c757d',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  btnSecondaryText: { color: '#fff', fontWeight: '800', textAlign: 'center' },
+  btnDisabled: { backgroundColor: '#a0a0a0', elevation: 0 },
+
+  /* Footer sin cuadro blanco (transparente, sin sombra) */
+  footerBar: {
+    paddingHorizontal: PAGE_PADDING_H,
+    paddingTop: 10,
+    paddingBottom: 18 + 6, // un poco más por el área segura
+    backgroundColor: 'transparent', // ⬅️ ya no hay fondo blanco
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    shadowOpacity: 0,               // sin sombra
+    elevation: 0,                   // sin sombra Android
+  },
 });
