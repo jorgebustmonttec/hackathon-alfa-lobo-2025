@@ -13,13 +13,19 @@ async function findByQrIdWithFlight(qrId) {
         fr.flight_route_id,
         fr.route_number,
         fr.origin,
+        origin_airport.city_name as origin_city,
         fr.destination,
+        dest_airport.city_name as destination_city,
         t.origin_trolley_config_id,
         t.destination_trolley_config_id
     FROM
         trolley t
     JOIN
         flight_route fr ON t.flight_route_id = fr.flight_route_id
+    LEFT JOIN
+        airport origin_airport ON fr.origin = origin_airport.airport_code
+    LEFT JOIN
+        airport dest_airport ON fr.destination = dest_airport.airport_code
     WHERE
         t.trolley_qr_id = $1;
   `;

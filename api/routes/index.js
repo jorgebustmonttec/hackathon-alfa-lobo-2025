@@ -165,12 +165,14 @@ router.get('/trolley/:qrId/flight', async (req, res) => {
       return res.status(404).json({ error: `Trolley with QR ID '${qrId}' not found.` });
     }
 
-    // Respond with only the flight-specific data
+    // Respond with only the flight-specific data, now including city names
     res.status(200).json({
       flight_route_id: trolleyData.flight_route_id,
       route_number: trolleyData.route_number,
       origin: trolleyData.origin,
+      origin_city: trolleyData.origin_city,
       destination: trolleyData.destination,
+      destination_city: trolleyData.destination_city,
     });
   } catch (error) {
     console.error(`Error fetching flight info for trolley QR '${req.params.qrId}':`, error);
