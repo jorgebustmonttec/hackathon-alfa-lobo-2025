@@ -21,8 +21,7 @@ const resolveUbicacion = async (ubicacionId, configData) => {
  // Transformar los productos de la API al formato esperado por el frontend
  const items = basket.products.map(product => ({
   sku: product.product_id, // Usar product_id como SKU
-  expectedQuantity: product.expected_quantity || 0, // Cantidad esperada
-  countedQuantity: product.counted_quantity || 0,   // Cantidad contada (inicialmente 0)
+  cantidad: product.expected_quantity || 0,
   nombre: product.name || 'Unknown Product',
   barcode: product.barcode || ''
  }));
@@ -34,7 +33,7 @@ const resolveUbicacion = async (ubicacionId, configData) => {
 };
 
 // ▼▼▼ CAMBIO 1: Aceptar 'configData' y 'onConfirm' en las props ▼▼▼
-export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, onBack, onConfirm, updatedQuantities = null }) {
+export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, onBack, onConfirm }) {
  const [loading, setLoading] = useState(true);
  const [data, setData] = useState(null);
  const [error, setError] = useState('');
@@ -51,19 +50,10 @@ export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, on
    const result = await resolveUbicacion(ubicacionId, configData);
    setData(result);
    
-   // Inicializar cantidades con los valores contados de la API (inicialmente 0)
-   let initialCantidades = Object.fromEntries(
-    result.items.map(item => [item.sku, item.countedQuantity.toString()])
+   // Inicializar cantidades con los valores esperados de la API
+   const initialCantidades = Object.fromEntries(
+    result.items.map(item => [item.sku, item.cantidad.toString()])
    );
-   
-   // Si hay cantidades actualizadas desde la verificación, aplicarlas
-   if (updatedQuantities) {
-    console.log("Aplicando cantidades actualizadas:", updatedQuantities);
-    initialCantidades = { ...initialCantidades, ...Object.fromEntries(
-     Object.entries(updatedQuantities).map(([sku, quantity]) => [sku, quantity.toString()])
-    )};
-   }
-   
    setCantidades(initialCantidades);
    
    console.log(`Loaded ${result.items.length} items for ${ubicacionId}`);
@@ -79,19 +69,6 @@ export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, on
  useEffect(() => {
   load();
  }, [load]);
-
- // Efecto para actualizar cantidades cuando regresan de verificación
- useEffect(() => {
-  if (updatedQuantities && Object.keys(updatedQuantities).length > 0) {
-   console.log("Recibidas cantidades actualizadas:", updatedQuantities);
-   setCantidades(prevCantidades => ({
-    ...prevCantidades,
-    ...Object.fromEntries(
-     Object.entries(updatedQuantities).map(([sku, quantity]) => [sku, quantity.toString()])
-    )
-   }));
-  }
- }, [updatedQuantities]);
 
  // Función para manejar el TextInput (sin cambios)
  const handleSetCantidad = (sku, valor) => {
@@ -122,40 +99,17 @@ export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, on
   return cantidad === undefined || cantidad === '';
  });
 
-  // Función para validar si algún producto necesita verificación
- const findProductsNeedingVerification = () => {
-  if (!data?.items) return [];
-  
-  return data.items.filter(item => {
-   const countedQuantity = parseInt(cantidades[item.sku], 10) || 0;
-   const expectedQuantity = item.expectedQuantity || 0;
-   return countedQuantity !== expectedQuantity;
-  });
- };
-
-  // ▼▼▼ CAMBIO 2: Crear una función local que valide y navegue según sea necesario ▼▼▼
+  // ▼▼▼ CAMBIO 2: Crear una función local que llame a la prop 'onConfirm' ▼▼▼
  const handleConfirmLocal = () => {
   if (!isConfirmDisabled) {
-   console.log("Confirmado en Seleccion_Back. Validando cantidades...");
-   
-   // Verificar si hay productos que necesitan verificación
-   const productsNeedingVerification = findProductsNeedingVerification();
-   
-   if (productsNeedingVerification.length > 0) {
-    console.log("Productos que necesitan verificación:", productsNeedingVerification);
-    // Navegar a InfoCarrito_Producto para el primer producto que necesita verificación
-    onConfirm(ubicacionId, cantidades, productsNeedingVerification[0]);
-   } else {
-    console.log("Todas las cantidades coinciden. Confirmando...");
-    // Todas las cantidades están correctas, proceder normalmente
-    onConfirm(ubicacionId, cantidades);
-   }
+   console.log("Confirmado en Seleccion_Back. Pasando datos a LogIn_Back...");
+      // Llamamos a la función 'onConfirm' (que viene de LogIn_Back)
+      // y le pasamos los datos que LogIn_Back necesita: el cajón (ubicacionId)
+      // y el objeto de cantidades.
+   onConfirm(ubicacionId, cantidades);
   }
  };
   // ▲▲▲ FIN CAMBIO 2 ▲▲▲
-
- // Verificar si hay productos que necesitan verificación para mostrar el botón correcto
- const hasProductsNeedingVerification = findProductsNeedingVerification().length > 0;
 
  return (
   <InfoCarrito_Seleccion_Front
@@ -168,7 +122,6 @@ export default function InfoCarrito_Seleccion_Back({ ubicacionId, configData, on
    cantidades={cantidades}
    onSetCantidad={handleSetCantidad}
    isConfirmDisabled={isConfirmDisabled}
-   hasProductsNeedingVerification={hasProductsNeedingVerification}
   />
  );
 }
