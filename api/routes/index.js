@@ -19,7 +19,15 @@ const handle = async (promise, res) => {
 
 // --- Endpoints ---
 
-// Health check
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check
+ *     responses:
+ *       200:
+ *         description: API is healthy
+ */
 router.get('/health', (req, res) => {
   res.status(200).json({
     message: "API is healthy",
@@ -28,27 +36,75 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Get all products
+/**
+ * @swagger
+ * /products:
+ *   get:
+ *     summary: Get all products
+ *     responses:
+ *       200:
+ *         description: A list of products
+ */
 router.get('/products', (req, res) => {
   handle(productRepository.findAll(), res);
 });
 
-// Get all basket configs
+/**
+ * @swagger
+ * /baskets:
+ *   get:
+ *     summary: Get all basket configs
+ *     responses:
+ *       200:
+ *         description: A list of basket configs
+ */
 router.get('/baskets', (req, res) => {
   handle(basketConfigRepository.findAll(), res);
 });
 
-// Get all trolleys
+/**
+ * @swagger
+ * /trolleys:
+ *   get:
+ *     summary: Get all trolleys
+ *     responses:
+ *       200:
+ *         description: A list of trolleys
+ */
 router.get('/trolleys', (req, res) => {
   handle(trolleyRepository.findAll(), res);
 });
 
-// The huge nested data endpoint
+/**
+ * @swagger
+ * /all-data:
+ *   get:
+ *     summary: The huge nested data endpoint
+ *     responses:
+ *       200:
+ *         description: All data, nested
+ */
 router.get('/all-data', (req, res) => {
   handle(flightRepository.findAllWithDetails(), res);
 });
 
-// Endpoint to get a specific trolley by QR code
+/**
+ * @swagger
+ * /trolley/{qrId}:
+ *   get:
+ *     summary: Get a specific trolley by QR code
+ *     parameters:
+ *       - in: path
+ *         name: qrId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The trolley object
+ *       404:
+ *         description: Trolley not found
+ */
 router.get('/trolley/:qrId', async (req, res) => {
   const { qrId } = req.params;
   if (!qrId) {
