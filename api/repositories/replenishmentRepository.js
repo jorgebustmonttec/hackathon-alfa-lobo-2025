@@ -71,34 +71,78 @@ async function createLog(logData) {
 }
 
 /**
- * Finds all replenishment logs.
+ * Finds all replenishment logs with full details.
  * @returns {Promise<Array<object>>} A list of all logs.
  */
 async function findAllLogs() {
   const { rows } = await db.query(`
-    SELECT l.log_id, u.username, t.trolley_qr_id, fr.route_number, l.location_code, l.started_at, l.completed_at
+    SELECT
+      l.log_id,
+      u.username,
+      t.trolley_qr_id,
+      fr.route_number,
+      l.location_code,
+      l.started_at,
+      l.completed_at,
+      (
+        SELECT COALESCE(json_agg(
+          json_build_object(
+            'product_id', d.product_id,
+            'product_name', p.name,
+            'position_identifier', d.position_identifier,
+            'expected_quantity', d.expected_quantity,
+            'counted_quantity', d.counted_quantity
+          ) ORDER BY d.position_identifier
+        ), '[]'::json)
+        FROM replenishment_log_detail d
+        JOIN product p ON d.product_id = p.product_id
+        WHERE d.log_id = l.log_id
+      ) as details
     FROM replenishment_log l
     JOIN app_user u ON l.user_id = u.user_id
     JOIN trolley t ON l.trolley_id = t.trolley_id
     JOIN flight_route fr ON l.flight_route_id = fr.flight_route_id
+    GROUP BY l.log_id, u.username, t.trolley_qr_id, fr.route_number
     ORDER BY l.started_at DESC;
   `);
   return rows;
 }
 
 /**
- * Finds all replenishment logs for a specific user.
+ * Finds all replenishment logs for a specific user with full details.
  * @param {string} userId - The UUID of the user.
  * @returns {Promise<Array<object>>} A list of logs for the user.
  */
 async function findLogsByUserId(userId) {
   const { rows } = await db.query(`
-    SELECT l.log_id, u.username, t.trolley_qr_id, fr.route_number, l.location_code, l.started_at, l.completed_at
+    SELECT
+      l.log_id,
+      u.username,
+      t.trolley_qr_id,
+      fr.route_number,
+      l.location_code,
+      l.started_at,
+      l.completed_at,
+      (
+        SELECT COALESCE(json_agg(
+          json_build_object(
+            'product_id', d.product_id,
+            'product_name', p.name,
+            'position_identifier', d.position_identifier,
+            'expected_quantity', d.expected_quantity,
+            'counted_quantity', d.counted_quantity
+          ) ORDER BY d.position_identifier
+        ), '[]'::json)
+        FROM replenishment_log_detail d
+        JOIN product p ON d.product_id = p.product_id
+        WHERE d.log_id = l.log_id
+      ) as details
     FROM replenishment_log l
     JOIN app_user u ON l.user_id = u.user_id
     JOIN trolley t ON l.trolley_id = t.trolley_id
     JOIN flight_route fr ON l.flight_route_id = fr.flight_route_id
     WHERE l.user_id = $1
+    GROUP BY l.log_id, u.username, t.trolley_qr_id, fr.route_number
     ORDER BY l.started_at DESC;
   `, [userId]);
   return rows;
